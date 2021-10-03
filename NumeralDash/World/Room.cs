@@ -242,7 +242,7 @@ namespace NumeralDash.World
         /// <summary>
         /// Checks if the limit of numbers in the room has not been reached and it does not already contain the target number.
         /// </summary>
-        public bool CanAddNumber(Number n) => _numbers.Count < NumberLimit && !_numbers.Any(number => number.Equals(n));
+        public bool CanAddNumber(Number n) => _numbers.Count < NumberLimit && !_numbers.Any(number => number == n);
 
         /// <summary>
         /// Checks if the room can accept the number and adds it to the list of collectibles.
@@ -273,6 +273,31 @@ namespace NumeralDash.World
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Returns the number collectible at the point p or null if not found.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public Number GetNumberAt(Point p) => _numbers.Find(number => number.Position == p);
+
+        public void ReplaceNumber(Number n, Number drop)
+        {
+            if (n is not null && _numbers.Contains(n))
+            {
+                _numbers.Remove(n);
+
+                if (drop is Number d)
+                {
+                    _numbers.Add(drop);
+                    drop.Position = n.Position;
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"Problem with replacing a number {n} in the room.");
+            }
         }
 
         #endregion

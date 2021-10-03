@@ -49,18 +49,33 @@ namespace NumeralDash.Consoles
             }
         }
 
-        public void MovePlayer(Point direction)
+        public bool MovePlayer(Point direction)
         {
             Point tileCoord = _player.GetNextMove(direction);
             if (_map.TileIsWalkable(tileCoord, out Room room))
             {
                 _player.MoveTo(tileCoord);
 
-                if (room is not null && !room.Visited)
+                if (room is not null)
                 {
-                    room.Visited = true;
+                    // check if the new player position contains a number
+                    if (room.GetNumberAt(tileCoord) is Number n)
+                    {
+                        Number drop = _player.Collect(n);
+                        room.ReplaceNumber(n, drop);
+                        n.IsVisible = false;
+                        if (drop is Number) drop.IsVisible = true;
+                    }
+
+                    if (!room.Visited)
+                    {
+                        room.Visited = true;
+                    }
                 }
+
+                return true;
             }
+            return false;
         }
 
         public string[] GetTileInfo() => _map.GetTileInfo(_player.Position);

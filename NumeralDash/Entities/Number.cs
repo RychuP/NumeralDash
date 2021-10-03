@@ -29,6 +29,11 @@ namespace NumeralDash.Entities
             get => _value.ToString().Length;
         }
 
+        /// <summary>
+        /// Returns the next number that need to follow this one.
+        /// </summary>
+        public int Next => _value + 1;
+
         public override bool Equals(object obj)
         {
             if (obj != null && obj is Number n) return _value == n._value;
@@ -44,5 +49,13 @@ namespace NumeralDash.Entities
         {
             return _value.ToString();
         }
+
+        public static bool operator ==(Number a, Number b) => a is not null && b is not null && a.Equals(b);
+
+        public static bool operator !=(Number a, Number b) => a is not null && b is not null && !a.Equals(b);
+
+        public static bool operator ==(Number a, int b) => a is not null && a._value == b;
+
+        public static bool operator !=(Number a, int b) => a is not null && a._value != b;
     }
 }

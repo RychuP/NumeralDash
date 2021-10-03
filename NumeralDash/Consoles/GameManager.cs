@@ -164,10 +164,11 @@ namespace NumeralDash.Consoles
                 // check if the direction has changed at all
                 if (direction.X != 0 || direction.Y != 0)
                 {
-                    _dungeon.MovePlayer(direction);
-
-                    // display some info about the current location
-                    _status.Display(_dungeon.GetTileInfo());
+                    if (_dungeon.MovePlayer(direction))
+                    {
+                        // display some info about the current location
+                        _status.Display(_dungeon.GetTileInfo());
+                    }
                 }
             }
 
