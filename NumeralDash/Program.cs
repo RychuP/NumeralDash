@@ -10,6 +10,11 @@ namespace NumeralDash
     {
         static int Width = 120, Height;
 
+        /// <summary>
+        /// Used to generate colors that are of a certain, minimum brightness.
+        /// </summary>
+        public const float MinimumColorBrightness = 0.4f;
+
         static void Main(string[] args)
         {
             // calculate the cell count for the Game.Height which will fill the full screen with the given Width and font size

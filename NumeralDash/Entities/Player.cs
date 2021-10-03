@@ -7,7 +7,7 @@ namespace NumeralDash.Entities
 {
     class Player : Entity
     {
-        public Player(Point startPosition) : base(Color.Yellow, Color.Black, glyph: 1, zIndex : 1)
+        public Player(Point startPosition) : base(Color.Yellow, Color.Black, glyph: 1, zIndex : 2)
         {
             Position = startPosition;
         }

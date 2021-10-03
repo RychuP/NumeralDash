@@ -10,8 +10,8 @@ namespace NumeralDash.Consoles
     {
         const int statusWindowHeight = 6,
                   inventoryWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
-                  mapWidth = 150,
-                  mapHeight = 150,
+                  mapWidth = 50,
+                  mapHeight = 50,
                   twoBorders = 2,
                   oneBorder = 1;
 
@@ -45,7 +45,7 @@ namespace NumeralDash.Consoles
             Map map;
             try
             {
-                map = new(mapWidth, mapHeight, 30, 5, 15);
+                map = new(mapWidth, mapHeight, 7, 5, 12);
             }
             catch (OverflowException e)
             {
@@ -103,7 +103,6 @@ namespace NumeralDash.Consoles
             // connect borders
             this.ConnectLines();
 
-            
             if (mapFailedToGenerate)
             {
                 // inform the user about the failed map generation
@@ -112,7 +111,7 @@ namespace NumeralDash.Consoles
             else
             {
                 // some debugging info in the status window
-                _status.Print(2, 0, $"There are {map.RoomCount} rooms in this dungeon. " +
+                _status.Print(2, 0, $"There are {map.Rooms.Count} rooms in this dungeon. " +
                 $"Screen x cells: { Game.Instance.ScreenCellsX}, y cells: { Game.Instance.ScreenCellsY}");
                 _status.Print(2, 1, $"Dungeon size: {_dungeon.Area.Size}, " +
                     $"Dungeon view size: ({_dungeon.ViewWidth}, {_dungeon.ViewHeight}), " +

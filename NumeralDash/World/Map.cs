@@ -72,8 +72,23 @@ namespace NumeralDash.World
 
         #region Room Management
 
-        // returns info about the number of rooms on the map
-        public int RoomCount => _rooms.Count;
+        /// <summary>
+        /// All the rooms that have been generated on the map.
+        /// </summary>
+        public List<Room> Rooms
+        {
+            get => _rooms;
+        }
+
+        /// <summary>
+        /// Returns a random room.
+        /// </summary>
+        /// <returns></returns>
+        public Room GetRandomRoom()
+        {
+            int index = Game.Instance.Random.Next(0, _rooms.Count - 1);
+            return _rooms[index];
+        }
 
         #endregion
 
@@ -146,7 +161,7 @@ namespace NumeralDash.World
                 foreach (var room in _rooms)
                 {
                     // check for excessive connections to this room
-                    if (!room.RoadLimitReached())
+                    if (room.CanAddRoad())
                     {
                         CreateRandomRoad(room);
                     }
@@ -165,7 +180,7 @@ namespace NumeralDash.World
         bool AllRoomsAreReachable()
         {
             // first test if all the rooms have at least one road
-            if (_rooms.Any(room => room.HasZeroRoads())) return false;
+            if (_rooms.Any(room => room.HasNoRoads())) return false;
 
             noOfChecksForAllRoomReachability++;
 
@@ -254,11 +269,8 @@ namespace NumeralDash.World
                     // check if the destination is a room 
                     if (t.Parent is Room other)
                     {
-                        // check if a direct road already exists between the two rooms 
-                        if (room.HasConnectionTo(other)
-
-                        // check if the other has reached the road limit
-                        || other.RoadLimitReached())
+                        // check if a road already exists between the two rooms or the other room reached a limit of roads
+                        if (room.HasConnectionTo(other) || !other.CanAddRoad())
                         {
                             return false;
                         }

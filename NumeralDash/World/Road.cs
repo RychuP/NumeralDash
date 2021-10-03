@@ -8,6 +8,10 @@ namespace NumeralDash.World
 {
     class Road : IConnectable
     {
+        // serves as an id generator
+        static int counter = 0;
+
+        // settings
         public const int MaxLegLength = 30,
             MinLegLength = 5,
             MaxLegsPerRoom = 2,
@@ -16,9 +20,6 @@ namespace NumeralDash.World
 
         // number of legs this road consists of
         int _legs = 0;
-
-        // serves as an id generator
-        static int counter = 0;
 
         public int ID { get; init; }
 
@@ -52,7 +53,8 @@ namespace NumeralDash.World
             _rooms = new() { room, destination };
             _points = points;
             _legs = legs;
-            Color = Program.GetRandomColor();
+            do Color = Program.GetRandomColor();
+            while (Color.GetBrightness() < Program.MinimumColorBrightness);
 
             // add the road to the rooms
             room.AddRoad(this);
