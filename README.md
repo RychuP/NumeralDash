@@ -5,6 +5,7 @@ Current mechanic:
 3. Player can carry one number in ther inventory for later use. It will be used automatically if the right number gets cleared. It may be replaced with a different number.
 
 Controls:
+
 Arrow buttons to move, F5 to switch full screen.
 
 To be implemented:
