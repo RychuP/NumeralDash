@@ -7,9 +7,12 @@ namespace NumeralDash.Entities
 {
     class Number : Entity
     {
+        public static Number Finished = new Number(-1);
+        public static Number Empty = new Number(0);
+
         int _value;
 
-        public Number(int value) : base(Color.White, Color.Black, 48 + value, zIndex: 1)
+        public Number(int value) : base(Color.White, Color.Black, 48 + value, (int) Layer.Items)
         {
             _value = value;
 
@@ -24,17 +27,12 @@ namespace NumeralDash.Entities
         /// <summary>
         /// How many tiles this number occupies
         /// </summary>
-        public int Size
+        public int Size     
         {
             get => _value.ToString().Length;
         }
 
-        /// <summary>
-        /// Returns the next number that need to follow this one.
-        /// </summary>
-        public int Next => _value + 1;
-
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj != null && obj is Number n) return _value == n._value;
             else return false;
@@ -45,17 +43,29 @@ namespace NumeralDash.Entities
             return _value.GetHashCode();
         }
 
-        public override string ToString()
-        {
-            return _value.ToString();
-        }
+        public override string ToString() => _value.ToString();
+
+        /// <summary>
+        /// Returns the underlying int value.
+        /// </summary>
+        public int ToInt32() => _value;
 
         public static bool operator ==(Number a, Number b) => a is not null && b is not null && a.Equals(b);
 
         public static bool operator !=(Number a, Number b) => a is not null && b is not null && !a.Equals(b);
 
         public static bool operator ==(Number a, int b) => a is not null && a._value == b;
-
+        
         public static bool operator !=(Number a, int b) => a is not null && a._value != b;
+
+        public static bool operator ==(int a, Number b) => b is not null && a == b._value;
+
+        public static bool operator !=(int a, Number b) => b is not null && a != b._value;
+
+        public static int operator +(Number a, int b) => a._value + b;
+
+        public static int operator +(int a, Number b) => a + b._value;
+
+        public static Number operator +(Number a, Number b) => new Number(a._value + b._value);
     }
 }

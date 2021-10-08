@@ -10,8 +10,6 @@ namespace NumeralDash.Consoles
     {
         const int statusWindowHeight = 6,
                   inventoryWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
-                  mapWidth = 50,
-                  mapHeight = 50,
                   twoBorders = 2,
                   oneBorder = 1;
 
@@ -22,6 +20,9 @@ namespace NumeralDash.Consoles
         readonly Dungeon _dungeon;
         readonly Inventory _inventory;
         readonly Status _status;
+
+        // game
+        int level = 1;
 
         public GameManager(int width, int height) : base(width, height)
         {
@@ -45,16 +46,16 @@ namespace NumeralDash.Consoles
             Map map;
             try
             {
-                map = new(mapWidth, mapHeight, 7, 5, 12);
+                map = new(level);
             }
-            catch (OverflowException e)
+            catch (OverflowException)
             {
-                map = new(mapWidth, mapHeight);
+                map = new();
                 mapFailedToGenerate = true;
             }
 
             // create a dungeon (devide the window width by two to allow for the size of the C64 font 16x16 compared to the default 8x16)
-            _dungeon = new(dungeonWindowSize.X / 2 - twoBorders, dungeonWindowSize.Y - twoBorders, map)
+            _dungeon = new(dungeonWindowSize.X / 2 - twoBorders, dungeonWindowSize.Y - twoBorders, map, level)
             {
                 Position = (dungeonPosition.X + oneBorder, dungeonPosition.Y + oneBorder)
             };

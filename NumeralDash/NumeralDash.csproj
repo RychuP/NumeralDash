@@ -1,17 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <ApplicationIcon />
-    <StartupObject />
+    <StartupObject>NumeralDash.Program</StartupObject>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SadConsole" Version="9.1.1" />
     <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
   </ItemGroup>
-
+	
   <ItemGroup>
     <None Update="Fonts\C64.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

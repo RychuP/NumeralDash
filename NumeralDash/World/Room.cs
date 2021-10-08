@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using NumeralDash.Tiles;
 using System.Linq;
 using NumeralDash.Entities;
+using SadConsole.Entities;
 
 namespace NumeralDash.World
 {
@@ -21,9 +22,9 @@ namespace NumeralDash.World
         public const int RoadsLimit = 3;
 
         /// <summary>
-        /// The maximum number of collectibles per room.
+        /// The maximum number of entities per room.
         /// </summary>
-        public const int NumberLimit = 2;
+        public const int EntityLimit = 2;
 
         #endregion
 
@@ -50,9 +51,9 @@ namespace NumeralDash.World
         Rectangle _expandedArea;
 
         /// <summary>
-        /// All the number collectibles currently in this room.
+        /// All layer 1 entities currently in this room.
         /// </summary>
-        List<Number> _numbers;
+        List<Entity> _entities;
 
         /// <summary>
         /// Whether this room has already been visited by the player or not.
@@ -69,7 +70,7 @@ namespace NumeralDash.World
         public Room(int minSize, int maxSize) : base()
         {
             _roads = new();
-            _numbers = new();
+            _entities = new();
 
             // generate an id
             ID = counter++;
@@ -240,58 +241,63 @@ namespace NumeralDash.World
         #region Number Management
 
         /// <summary>
-        /// Checks if the limit of numbers in the room has not been reached and it does not already contain the target number.
+        /// Checks if it's possible to add another entity to the room.
         /// </summary>
-        public bool CanAddNumber(Number n) => _numbers.Count < NumberLimit && !_numbers.Any(number => number == n);
+        public bool CanAddEntity(Entity e) => _entities.Count < EntityLimit;
 
         /// <summary>
-        /// Checks if the room can accept the number and adds it to the list of collectibles.
+        /// Adds a new entity to the room.
         /// </summary>
-        /// <param name="n">The number to be added to the room.</param>
-        /// <param name="PlayerPosition">Player position to prevent spawning numbers too close.</param>
+        /// <param name="e">The new entity.</param>
+        /// <param name="PlayerPosition">Prevents spawning entities too close to the player.</param>
         /// <returns>True if operation was successful.</returns>
-        public bool AddNumber(Number n, Point PlayerPosition)
+        public bool AddEntity(Entity e, Point PlayerPosition)
         {
-            if (CanAddNumber(n))
+            if (CanAddEntity(e))
             {
                 // get a random position for the number in the room
-                do n.Position = GetRandomPosition();
+                do e.Position = GetRandomPosition();
                 while (
                     // check if the position of the new number does not fall on the perimeter of the room
-                    Area.PerimeterPositions().Contains(n.Position) ||
+                    Area.PerimeterPositions().Contains(e.Position) ||
 
                     // check if  none of all the other numbers in the room would become a direct neighbour of the new number
-                    _numbers.Any(number => number.Position.GetDirectionPoints().Contains(n.Position)) ||
-                    
+                    _entities.Any(number => number.Position.GetDirectionPoints().Contains(e.Position)) ||
+
                     // check if the number will not spawn right on player position
-                    n.Position == PlayerPosition);
+                    e.Position == PlayerPosition);
 
                 // add the number to the room
-                _numbers.Add(n);
+                _entities.Add(e);
 
                 // report success
                 return true;
             }
+
             return false;
         }
 
         /// <summary>
-        /// Returns the number collectible at the point p or null if not found.
+        /// Returns an entity at the point p or null if not found.
         /// </summary>
-        /// <param name="p"></param>
+        /// <param name="p">Position in the room.</param>
         /// <returns></returns>
-        public Number GetNumberAt(Point p) => _numbers.Find(number => number.Position == p);
+        public Entity? GetEntityAt(Point p) => _entities.Find(entity => entity.Position == p);
 
         public void ReplaceNumber(Number n, Number drop)
         {
-            if (n is not null && _numbers.Contains(n))
+            if (_entities.Contains(n))
             {
-                _numbers.Remove(n);
+                // remove the number from the room and hide it
+                _entities.Remove(n);
+                n.IsVisible = false;
 
-                if (drop is Number d)
+                if (drop != Number.Empty && drop != Number.Finished)
                 {
-                    _numbers.Add(drop);
+                    // add a replacement number and show it
+                    _entities.Add(drop);
                     drop.Position = n.Position;
+                    drop.IsVisible = true;
                 }
             }
             else

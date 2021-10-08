@@ -15,6 +15,14 @@ namespace NumeralDash.World
             FailedAttemptsAtGeneratingMap = 0;
         public bool AllRoomsAreConnected = false;
 
+        // settings
+        const int defaultSize = 50, 
+            sizeModifier = 10,
+            maxRooms = 7,
+            maxRoomsModifier = 2,
+            minRoomSize = 5, 
+            maxRoomSize = 12;
+
         #region Storage
 
         // list of all rooms
@@ -35,10 +43,10 @@ namespace NumeralDash.World
         #endregion
 
         // constructor
-        public Map(int width, int height, int maxRooms, int minRoomSize, int maxRoomSize) : this(width, height)
+        public Map(int level) : this(defaultSize + level * sizeModifier, defaultSize + level * sizeModifier)
         {
             // keep trying to generate a map until one valid is made
-            while (!Generate(maxRooms, minRoomSize, maxRoomSize))
+            while (!Generate(maxRooms + level * maxRoomsModifier, minRoomSize, maxRoomSize))
             {
                 FailedAttemptsAtGeneratingMap++;
                 noOfChecksForAllRoomReachability = 0;
@@ -50,12 +58,12 @@ namespace NumeralDash.World
         }
 
         // constructor that creates an unwalkable map full with walls
-        public Map(int width, int height)
+        public Map(int width = defaultSize, int height = defaultSize)
         {
             Width = width;
             Height = height;
             Tiles = new TileBase[width * height];
-            _rooms = new List<Room>();
+            _rooms = new();
 
             // Fill the entire tile array with walls
             for (int i = 0; i < Tiles.Length; i++)
@@ -96,7 +104,7 @@ namespace NumeralDash.World
         #region Tile Management
 
         // returns true if the tile location is walkable
-        public bool TileIsWalkable(Point p, out Room room)
+        public bool TileIsWalkable(Point p, out Room? room)
         {
             TileBase tile = Tiles[p.ToIndex(Width)];
             room = null;

@@ -4,6 +4,7 @@ using SadRogue.Primitives;
 using SadConsole.Entities;
 using System.Collections.Generic;
 using System.Linq;
+using NumeralDash.Rules;
 
 namespace NumeralDash.Entities
 {
@@ -13,9 +14,13 @@ namespace NumeralDash.Entities
 
         Number _inventory;
 
-        public Player(Point startPosition) : base(Color.Yellow, Color.Black, glyph: 1, zIndex : 2)
+        IRule _collectionOrder;
+
+        public Player(Point startPosition, IRule collectionOrder) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
         {
             _numbers = new();
+            _collectionOrder = collectionOrder;
+            _inventory = Number.Empty;
             Position = startPosition;
         }
 
@@ -46,39 +51,36 @@ namespace NumeralDash.Entities
 
         public Number Collect(Number n)
         {
-            if (n is null)
-            {
-                throw new ArgumentException("Null cannot be passed to this method.");
-            }
-
             if (n.Position != Position)
             {
                 throw new ArgumentException("Number's position is not the same as player's position.");
             }
 
-            if (_numbers.Contains(n) || (_inventory is not null && _inventory == n))
+            if (_numbers.Contains(n) || (_inventory == n))
             {
                 throw new ArgumentException("Trying to collect a duplicate number.");
             }
 
             // check if the number can be collected and placed in the numbers list
-            else if (n == 1 || (_numbers.Count > 0 &&  n == _numbers.Last().Next))
+            else if (_numbers.Count > 0 && _collectionOrder.GetNext(_numbers.Last()) == n)
             {
                 _numbers.Add(n);
-                if (_inventory == _numbers.Last().Next)
+
+                // check if the number in the inventory can now be placed in the numbers list as well
+                if (_collectionOrder.GetNext(_numbers.Last()) == _inventory)
                 {
                     _numbers.Add(_inventory);
-                    _inventory = null;
+                    _inventory = Number.Empty;
                     OnInventoryChanged();
                 }
                 OnNumbersChanged();
-                return null;
+                return Number.Empty;
             }
 
             // place the number in the players inventory
             else
             {
-                Number temp = _inventory is Number ? _inventory : null;
+                Number temp = _inventory;
                 _inventory = n;
                 OnInventoryChanged();
                 return temp;
@@ -106,14 +108,14 @@ namespace NumeralDash.Entities
         }
 
         /// <summary>
-        /// Indicates that the player has placed a new number in their temporary inventory.
+        /// Raised when the player has placed a new number in their inventory.
         /// </summary>
-        public event EventHandler InventoryChanged;
+        public event EventHandler? InventoryChanged;
 
         /// <summary>
-        /// Indicates that the player has collected a valid number and placed it in their numbers list;
+        /// Raised when the player has collected a valid number and placed it in their numbers list;
         /// </summary>
-        public event EventHandler NumbersChanged;
+        public event EventHandler? NumbersChanged;
 
         #endregion
     }

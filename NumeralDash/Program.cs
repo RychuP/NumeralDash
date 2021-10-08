@@ -46,7 +46,16 @@ namespace NumeralDash
             var gm = new GameManager(Width, Height);
         }
 
-        // returns a random color
+        /// <summary>
+        /// Returns a random color.
+        /// </summary>
+        /// <returns></returns>
         public static Color GetRandomColor() => Color.White.GetRandomColor(Game.Instance.Random);
+
+        /// <summary>
+        /// Returns a random 0 based index.
+        /// </summary>
+        /// <param name="count">Size of the collection.</param>
+        public static int GetRandomIndex(int count) => Game.Instance.Random.Next(0, count - 1);
     }
 }
