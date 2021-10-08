@@ -12,15 +12,15 @@ namespace NumeralDash.Consoles
 {
     class Dungeon : SadConsole.Console
     {
+        // settings
+        const float numbersPerRoom = 1.25f;
+
         Map _map;
         Player _player;
         Renderer _entityManager;
-        int _level;
 
-        public Dungeon(int viewSizeX, int viewSizeY, Map map, int level) : base(viewSizeX, viewSizeY, map.Width, map.Height, map.Tiles)
+        public Dungeon(int viewSizeX, int viewSizeY, Map map) : base(viewSizeX, viewSizeY, map.Width, map.Height, map.Tiles)
         {
-            _level = level;
-
             _map = map;
             Font = Game.Instance.Fonts["C64"];
 
@@ -29,7 +29,7 @@ namespace NumeralDash.Consoles
             SadComponents.Add(_entityManager);
 
             // select a rule for number collections
-            int numberOfRules = 2, numberCount = Convert.ToInt32(map.Rooms.Count * 1.25);
+            int numberOfRules = 2, numberCount = Convert.ToInt32(map.Rooms.Count * numbersPerRoom);
             var ruleNumber = Program.GetRandomIndex(numberOfRules);
             IRule rule = ruleNumber switch
             {
@@ -44,9 +44,9 @@ namespace NumeralDash.Consoles
 
             // spawn entities (numbers and the exit)
             Room room;
-            for (int i = 1; i <= numberCount + 1; i++)
+            for (int i = 0; i < numberCount + 1 /* 1 for the exit */; i++)
             {
-                Entity n = (i <= numberCount) ? new Number(i) : new Exit(rule);
+                Entity n = (i < numberCount) ? rule.Numbers[i] : new Exit(rule);
                 _entityManager.Add(n);
 
                 // keep looking for a room that will accept this entity
@@ -82,6 +82,8 @@ namespace NumeralDash.Consoles
                         Number drop = _player.Collect(n);
                         room.ReplaceNumber(n, drop);
                     }
+
+                    // check if the exit allows passage (all the numbers are collected)
                     else if (e is Exit x && x.AllowsPassage())
                     {
                         OnLevelCompleted();

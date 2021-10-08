@@ -9,11 +9,15 @@ namespace NumeralDash.Rules
         public RandomOrder(int count) : base(count)
         {
             // populate remaining numbers
-            for (int i = 1; i < NumberCount; i++)
+            for (int i = 1; i <= NumberCount; i++)
             {
                 RemainingNumbers.Add(new Number(i));
             }
 
+            // save a copy of all the numbers before removing the NextNumber
+            Numbers = RemainingNumbers.ToArray();
+
+            // set the number to find
             SetNextNumber();
         }
 

@@ -17,7 +17,7 @@ namespace NumeralDash.Rules
         /// <summary>
         /// Returns all numbers as an array.
         /// </summary>
-        public Number[] Numbers => RemainingNumbers.ToArray();
+        public Number[] Numbers { get; init; }
 
         /// <summary>
         /// Next number that need to be collected.
@@ -32,7 +32,7 @@ namespace NumeralDash.Rules
         public RuleBase(int count)
         {
             // limit the count of numbers to generate
-            NumberCount = (count < 10) ? 10 : (count > 100) ? 100 : count;
+            NumberCount = (count < 1) ? 1 : (count > 100) ? 100 : count;
 
             RemainingNumbers = new();
         }

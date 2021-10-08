@@ -9,5 +9,7 @@ namespace NumeralDash.Rules
         public string NumberToFind { get; }
 
         public Number GetNext(Number? lastNumber);
+
+        public Number[] Numbers { get; }
     }
 }

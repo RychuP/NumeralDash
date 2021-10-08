@@ -55,7 +55,7 @@ namespace NumeralDash.Consoles
             }
 
             // create a dungeon (devide the window width by two to allow for the size of the C64 font 16x16 compared to the default 8x16)
-            _dungeon = new(dungeonWindowSize.X / 2 - twoBorders, dungeonWindowSize.Y - twoBorders, map, level)
+            _dungeon = new(dungeonWindowSize.X / 2 - twoBorders, dungeonWindowSize.Y - twoBorders, map)
             {
                 Position = (dungeonPosition.X + oneBorder, dungeonPosition.Y + oneBorder)
             };
