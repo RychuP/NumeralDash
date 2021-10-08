@@ -1,8 +1,8 @@
 # Numeral Dash
 Current mechanic:
-1. Player needs to clear all numbers off the map.
-2. Numbers need to be cleared in sequential order.
-3. Player can carry one number in ther inventory for later use. It will be used automatically if the right number gets cleared. It may be replaced with a different number.
+1. Player needs to collect all numbers from the map.
+2. They need to be picked up in a given order, which is chosen at random when the level is generated.
+3. Player can carry one number in ther inventory for later use. It will be used automatically if the right number is collected. It may be replaced with a different number.
 
 Controls:
 
