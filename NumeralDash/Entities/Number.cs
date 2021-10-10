@@ -7,10 +7,10 @@ namespace NumeralDash.Entities
 {
     class Number : Entity
     {
-        public static Number Finished = new Number(-1);
-        public static Number Empty = new Number(0);
+        public static Number Finished = new(-1);
+        public static Number Empty = new(0);
 
-        int _value;
+        readonly int _value;
 
         public Number(int value) : base(Color.White, Color.Black, 48 + value, (int) Layer.Items)
         {
@@ -19,9 +19,19 @@ namespace NumeralDash.Entities
             // make sure the background is not transparent
             Appearance.Background = Appearance.Background.FillAlpha();
 
-            // find a color that meets the Minimum Brightness criteria
-            do Appearance.Foreground = Program.GetRandomColor();
-            while (Appearance.Foreground.GetBrightness() < Program.MinimumColorBrightness);
+
+            // random color for regular numbers
+            if (_value > 0)
+            {
+                // find a color that meets the Minimum Brightness criteria
+                do Appearance.Foreground = Program.GetRandomColor();
+                while (Appearance.Foreground.GetBrightness() < Program.MinimumColorBrightness);
+            }
+            // set color for special numbers
+            else
+            {
+                Appearance.Foreground = (_value == 0) ? Color.Red : Color.Green;
+            }
         }
 
         /// <summary>
@@ -32,7 +42,14 @@ namespace NumeralDash.Entities
             get => _value.ToString().Length;
         }
 
-        public Color Color => Appearance.Foreground;
+        public Color Color
+        {
+            get => Appearance.Foreground;
+            set
+            {
+                Appearance.Foreground = value;
+            }
+        }
 
         public override bool Equals(object? obj)
         {

@@ -21,9 +21,6 @@ namespace NumeralDash.Consoles
         readonly SideWindow _sideWindow;
         readonly BottomWindow _bottomWindow;
 
-        // game
-        int level = 1;
-
         public GameManager(int width, int height) : base(width, height)
         {
             _borderGlyph = new ColoredGlyph(Color.Green, DefaultBackground, 177);
@@ -90,6 +87,8 @@ namespace NumeralDash.Consoles
             // connect borders
             this.ConnectLines();
 
+            // start game
+            _dungeon.Start();
         }
 
         void AddWindow(Rectangle r, SadConsole.Console c)

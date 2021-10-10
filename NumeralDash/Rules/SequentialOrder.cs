@@ -29,6 +29,7 @@ namespace NumeralDash.Rules
             {
                 NextNumber = RemainingNumbers[0];
                 RemainingNumbers.RemoveAt(0);
+                OnRemainingNumbersChanged();
             }
             else NextNumber = Number.Finished;
 

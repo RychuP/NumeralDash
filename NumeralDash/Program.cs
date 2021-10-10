@@ -53,9 +53,9 @@ namespace NumeralDash
         public static Color GetRandomColor() => Color.White.GetRandomColor(Game.Instance.Random);
 
         /// <summary>
-        /// Returns a random 0 based index.
+        /// Returns a random index (between 0 and count - 1).
         /// </summary>
         /// <param name="count">Size of the collection.</param>
-        public static int GetRandomIndex(int count) => Game.Instance.Random.Next(0, count - 1);
+        public static int GetRandomIndex(int count) => Game.Instance.Random.Next(0, count);
     }
 }

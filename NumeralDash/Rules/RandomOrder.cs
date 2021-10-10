@@ -32,11 +32,13 @@ namespace NumeralDash.Rules
                 int index = Program.GetRandomIndex(RemainingNumbers.Count);
                 NextNumber = RemainingNumbers[index];
                 RemainingNumbers.RemoveAt(index);
+                OnRemainingNumbersChanged();
             }
             else if (RemainingNumbers.Count == 1)
             {
                 NextNumber = RemainingNumbers[0];
                 RemainingNumbers.RemoveAt(0);
+                OnRemainingNumbersChanged();
             }
             else NextNumber = Number.Finished;
 

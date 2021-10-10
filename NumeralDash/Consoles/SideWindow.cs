@@ -55,15 +55,11 @@ namespace NumeralDash.Consoles
                 y += sizeOfThePrevItem + borderTop + 1 /* beginning of the next content */;
             }
 
-            // show initial values
-            OnInventoryChanged()
-            OnNextNumberChanged(dungeon.Rule.NextNumber);
-            OnRuleChanged(dungeon.Rule);
-
             // hook events
+            dungeon.LevelChanged += OnLevelChanged;
             dungeon.Player.InventoryChanged += OnInventoryChanged;
             dungeon.Player.DepositMade += OnDepositMade;
-            dungeon.Rule.NextNumberChanged += OnNextNumberChanged;
+            
         }
 
         public void PrintItemContent(string itemName, string s, Color c)
@@ -77,6 +73,19 @@ namespace NumeralDash.Consoles
             }
         }
 
+        /// <summary>
+        /// Erases all contents of the display items.
+        /// </summary>
+        void ClearItems()
+        {
+            foreach (var item in _items)
+            {
+                PrintItemContent(item.Name, string.Empty, DefaultForeground);
+            }
+        }
+
+        #region Event Handlers
+
         void OnInventoryChanged(Number n)
         {
             PrintItemContent("Inv", n.ToString(), n.Color);
@@ -84,17 +93,41 @@ namespace NumeralDash.Consoles
 
         void OnNextNumberChanged(Number n)
         {
-            PrintItemContent("Next", n.ToString(), n.Color);
+            var text = (n == Number.Finished) ? "Proceed to exit." : n.ToString();
+            PrintItemContent("Next", text, n.Color);
         }
 
         void OnRuleChanged(IRule r)
         {
+            // display rule description
             PrintItemContent("Rule", r.Description, r.Color);
+
+            // hook event handlers to the new rule
+            r.NextNumberChanged += OnNextNumberChanged;
+            r.RemainingNumbersChanged += OnRemainingNumbersChanged;
+
+            // display rule info
+            OnNextNumberChanged(r.NextNumber);
+            OnRemainingNumbersChanged(r.Numbers.Length);
         }
 
-        void OnDepositMade(Number n)
+        void OnDepositMade(Number n, int totalNumbers)
         {
             PrintItemContent("Last", n.ToString(), n.Color);
+            PrintItemContent("All", totalNumbers.ToString(), Color.White);
         }
+
+        void OnLevelChanged(IRule rule, int level, string[] s)
+        {
+            ClearItems();
+            OnRuleChanged(rule);
+        }
+
+        void OnRemainingNumbersChanged(int numbersRemaining)
+        {
+            PrintItemContent("Remain", numbersRemaining.ToString(), Color.White);
+        }
+
+        #endregion
     }
 }

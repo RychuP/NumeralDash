@@ -7,6 +7,8 @@ namespace NumeralDash.Rules
 {
     class RuleBase
     {
+        #region Storage
+
         /// <summary>
         /// A list of remaing numbers to be collected.
         /// </summary>
@@ -32,6 +34,8 @@ namespace NumeralDash.Rules
         /// </summary>
         public Color Color { get; protected set; }
 
+        #endregion
+
         public RuleBase(int count)
         {
             if (count < 1 || count > 100)
@@ -44,11 +48,22 @@ namespace NumeralDash.Rules
             Numbers = new Number[NumberCount];
         }
 
+        #region Events
+
         protected void OnNextNumberChanged()
         {
             NextNumberChanged?.Invoke(NextNumber);
         }
 
         public event Action<Number>? NextNumberChanged;
+
+        protected void OnRemainingNumbersChanged()
+        {
+            RemainingNumbersChanged?.Invoke(RemainingNumbers.Count);
+        }
+
+        public event Action<int>? RemainingNumbersChanged;
+
+        #endregion
     }
 }

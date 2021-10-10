@@ -19,9 +19,10 @@ namespace NumeralDash.Consoles
         #region Storage
 
         // fields
-        readonly Map _blankMap;
-        Map _map;
         readonly Renderer _entityManager;
+        readonly Map _blankMap;
+        int _level = 1;
+        Map _map;
 
         // public properties
         public Player Player { get; init; }
@@ -30,8 +31,7 @@ namespace NumeralDash.Consoles
 
         #endregion
 
-        public Dungeon(int viewSizeX, int viewSizeY, Map blankMap) : 
-            base(viewSizeX, viewSizeY, blankMap.Width, blankMap.Height, blankMap.Tiles)
+        public Dungeon(int viewSizeX, int viewSizeY, Map blankMap) : base(viewSizeX, viewSizeY, blankMap.Width, blankMap.Height, blankMap.Tiles)
         {
             _blankMap = blankMap;
             _map = blankMap;
@@ -50,16 +50,21 @@ namespace NumeralDash.Consoles
             _entityManager.Add(Player);
         }
 
+        #region Level Management
+
         public void Start()
         {
-
+            ChangeLevel();
         }
 
-        void ChangeLevel(int level)
+        void ChangeLevel()
         {
             try
             {
-                _map = new(level);
+                ChangeMap();
+                ChangeRule();
+                SpawnEntities();
+                OnLevelChanged();
             }
             catch (OverflowException)
             {
@@ -68,12 +73,20 @@ namespace NumeralDash.Consoles
             }
         }
 
+        void ChangeMap()
+        {
+            _map = new(_level++);
+            int x = ViewWidth, y = ViewHeight;
+            Surface = new CellSurface(_map.Width, _map.Height, _map.Tiles);
+            ViewWidth = x;
+            ViewHeight = y;
+        }
+
         /// <summary>
         /// Spawns entities (all numbers and an exit).
         /// </summary>
         void SpawnEntities()
         {
-            
             Room room;
             for (int i = 0; i < Rule.Numbers.Length + 1 /* 1 for the exit */; i++)
             {
@@ -91,6 +104,9 @@ namespace NumeralDash.Consoles
                     throw new ArgumentException($"Excessive number of entities. No room can accept {i}.");
                 }
             }
+
+            // reposition player to the new start point
+            Player.Position = _map.PlayerStartPosition;
         }
 
         /// <summary>
@@ -107,6 +123,8 @@ namespace NumeralDash.Consoles
                 _ => new RandomOrder(numberCount)
             };
         }
+
+        #endregion
 
         #region Player Management
 
@@ -198,20 +216,6 @@ namespace NumeralDash.Consoles
 
         void OnLevelChanged()
         {
-            LevelChanged?.Invoke(Rule, )
-        }
-
-        public event Action<IRule, int>? LevelChanged;
-
-        void OnMapFailedToGenerate()
-        {
-            MapFailedToGenerate?.Invoke("Failure.");
-        }
-
-        public event Action<string>? MapFailedToGenerate;
-
-        void OnMapGeneratedSuccessfully()
-        {
             var mapGenerationInfo = new string[]
             {
                 $"There are {_map.Rooms.Count} rooms in this dungeon. " +
@@ -222,10 +226,17 @@ namespace NumeralDash.Consoles
                     $"Failed attempts at map generation: {_map.FailedAttemptsAtGeneratingMap}"
             };
 
-            MapGeneratedSuccessfully?.Invoke(mapGenerationInfo);
+            LevelChanged?.Invoke(Rule, _level, mapGenerationInfo);
         }
 
-        public event Action<string[]>? MapGeneratedSuccessfully;
+        public event Action<IRule, int, string[]>? LevelChanged;
+
+        void OnMapFailedToGenerate()
+        {
+            MapFailedToGenerate?.Invoke("Failure.");
+        }
+
+        public event Action<string>? MapFailedToGenerate;
 
         #endregion
     }

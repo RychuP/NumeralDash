@@ -101,7 +101,7 @@ namespace NumeralDash.Entities
         {
             _numbers.Add(n);
             _dungeon.Rule.SetNextNumber();
-            OnNumbersChanged();
+            OnDepositMade();
         }
 
         #endregion
@@ -117,22 +117,24 @@ namespace NumeralDash.Entities
         }
 
         /// <summary>
-        /// Raises the NumbersChanged event.
-        /// </summary>
-        void OnNumbersChanged()
-        {
-            DepositMade?.Invoke(_numbers.Last());
-        }
-
-        /// <summary>
         /// Raised when the player has placed a new number in their inventory.
         /// </summary>
         public event Action<Number>? InventoryChanged;
 
         /// <summary>
+        /// Raises the NumbersChanged event.
+        /// </summary>
+        void OnDepositMade()
+        {
+            var lastNumber = _numbers.Last();
+            var totalNumbersCollected = _numbers.Count;
+            DepositMade?.Invoke(lastNumber, totalNumbersCollected);
+        }
+
+        /// <summary>
         /// Raised when the player has collected a valid number and placed it in their numbers list;
         /// </summary>
-        public event Action<Number>? DepositMade;
+        public event Action<Number, int>? DepositMade;
 
         #endregion
     }

@@ -17,5 +17,7 @@ namespace NumeralDash.Rules
         public Number[] Numbers { get; }
 
         public event Action<Number> NextNumberChanged;
+
+        public event Action<int> RemainingNumbersChanged;
     }
 }

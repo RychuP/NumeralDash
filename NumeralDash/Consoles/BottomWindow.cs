@@ -1,4 +1,5 @@
 ﻿using System;
+using NumeralDash.Rules;
 using SadConsole;
 using SadRogue.Primitives;
 
@@ -9,7 +10,7 @@ namespace NumeralDash.Consoles
         public BottomWindow(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
         {
             dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
-            dungeon.MapGeneratedSuccessfully += OnMapGeneratedSuccessfully;
+            dungeon.LevelChanged += OnLevelChanged;
             dungeon.PlayerMoved += OnPlayerMoved;
         }
 
@@ -39,7 +40,7 @@ namespace NumeralDash.Consoles
             this.Print(2, 0, $"Map generation failed. Please restart the game.");
         }
 
-        void OnMapGeneratedSuccessfully(string[] txt)
+        void OnLevelChanged(IRule rule, int level, string[] txt)
         {
             int y = 0;
             foreach (string s in txt)
