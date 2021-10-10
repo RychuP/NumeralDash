@@ -1,34 +1,39 @@
 ﻿using NumeralDash.Entities;
+using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class SequentialOrder : RuleBase
+    class SequentialOrder : RuleBase, IRule
     {
-        public override string Description => base.Description + "Collect all numbers in a sequntial order starting with 1.";
+        public string Description => "Sequential order.";
 
         public SequentialOrder(int count) : base(count)
         {
+            Color = Color.Yellow;
+
             // populate remaining numbers
             for (int i = 1; i <= NumberCount; i++)
             {
-                RemainingNumbers.Add(new Number(i));
+                var n = new Number(i);
+                RemainingNumbers.Add(n);
+                Numbers[i - 1] = n;
             }
-
-            // save a copy of all the numbers before removing the NextNumber
-            Numbers = RemainingNumbers.ToArray();
 
             // set the number to find
             SetNextNumber();
         }
 
-        protected override void SetNextNumber()
+        public void SetNextNumber()
         {
             if (RemainingNumbers.Count >= 1)
             {
                 NextNumber = RemainingNumbers[0];
                 RemainingNumbers.RemoveAt(0);
+                OnRemainingNumbersChanged();
             }
             else NextNumber = Number.Finished;
+
+            OnNextNumberChanged();
         }
     }
 }

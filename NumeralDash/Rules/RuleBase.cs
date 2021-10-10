@@ -1,13 +1,13 @@
-﻿using NumeralDash.Entities;
+﻿using System;
+using NumeralDash.Entities;
 using System.Collections.Generic;
+using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class RuleBase : IRule
+    class RuleBase
     {
-        public virtual string Description => "Rule: ";
-
-        public virtual string NumberToFind => $"Next number to collect: {NextNumber}";
+        #region Storage
 
         /// <summary>
         /// A list of remaing numbers to be collected.
@@ -15,40 +15,55 @@ namespace NumeralDash.Rules
         protected List<Number> RemainingNumbers { get; init; }
 
         /// <summary>
-        /// Returns all numbers as an array.
+        /// Amount of numbers to be generated.
+        /// </summary>
+        protected int NumberCount { get; set; }
+
+        /// <summary>
+        /// Next number to be collected.
+        /// </summary>
+        public Number NextNumber { get; protected set; } = Number.Empty;
+
+        /// <summary>
+        /// Initial list of all numbers to collect from the map.
         /// </summary>
         public Number[] Numbers { get; init; }
 
         /// <summary>
-        /// Next number that need to be collected.
+        /// Foreground color.
         /// </summary>
-        protected Number NextNumber = Number.Empty;
+        public Color Color { get; protected set; }
 
-        /// <summary>
-        /// Amount of numbers to be generated.
-        /// </summary>
-        protected int NumberCount;
+        #endregion
 
         public RuleBase(int count)
         {
-            // limit the count of numbers to generate
-            NumberCount = (count < 1) ? 1 : (count > 100) ? 100 : count;
-
-            RemainingNumbers = new();
-        }
-
-        protected virtual void SetNextNumber() { }
-
-        public Number GetNext(Number? lastDeposit)
-        {
-            if (lastDeposit is null) return NextNumber;
-            else if (NextNumber == Number.Finished) return Number.Finished;
-            else if (lastDeposit != NextNumber) return NextNumber;
-            else
+            if (count < 1 || count > 100)
             {
-                SetNextNumber();
-                return NextNumber;
+                throw new ArgumentException("Amount of the numbers to generate is outside of the limits allowed.");
             }
+
+            NumberCount = count;
+            RemainingNumbers = new();
+            Numbers = new Number[NumberCount];
         }
+
+        #region Events
+
+        protected void OnNextNumberChanged()
+        {
+            NextNumberChanged?.Invoke(NextNumber);
+        }
+
+        public event Action<Number>? NextNumberChanged;
+
+        protected void OnRemainingNumbersChanged()
+        {
+            RemainingNumbersChanged?.Invoke(RemainingNumbers.Count);
+        }
+
+        public event Action<int>? RemainingNumbersChanged;
+
+        #endregion
     }
 }
