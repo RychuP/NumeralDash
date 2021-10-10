@@ -1,27 +1,31 @@
 ﻿using NumeralDash.Entities;
+using SadConsole;
+using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class RandomOrder : RuleBase
+    class RandomOrder : RuleBase, IRule
     {
-        public override string Description => base.Description + "Numbers will be selected in a random order.";
+        public string Description => "Random order.";
 
         public RandomOrder(int count) : base(count)
         {
-            // populate remaining numbers
+            Color = Color.Green;
+
+            // generate numbers
             for (int i = 1; i <= NumberCount; i++)
             {
-                RemainingNumbers.Add(new Number(i));
+                var n = new Number(i);
+                RemainingNumbers.Add(n);
+                Numbers[i - 1] = n;
             }
-
-            // save a copy of all the numbers before removing the NextNumber
-            Numbers = RemainingNumbers.ToArray();
 
             // set the number to find
             SetNextNumber();
         }
 
-        protected override void SetNextNumber()
+
+        public void SetNextNumber()
         {
             if (RemainingNumbers.Count > 1)
             {
@@ -35,6 +39,10 @@ namespace NumeralDash.Rules
                 RemainingNumbers.RemoveAt(0);
             }
             else NextNumber = Number.Finished;
+
+            OnNextNumberChanged();
         }
+
+        
     }
 }

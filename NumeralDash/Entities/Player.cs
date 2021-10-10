@@ -5,6 +5,7 @@ using SadConsole.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using NumeralDash.Rules;
+using NumeralDash.Consoles;
 
 namespace NumeralDash.Entities
 {
@@ -14,12 +15,12 @@ namespace NumeralDash.Entities
 
         Number _inventory;
 
-        IRule _collectionOrder;
+        Dungeon _dungeon;
 
-        public Player(Point startPosition, IRule collectionOrder) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
+        public Player(Point startPosition, Dungeon dungeon) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
         {
             _numbers = new();
-            _collectionOrder = collectionOrder;
+            _dungeon = dungeon;
             _inventory = Number.Empty;
             Position = startPosition;
         }
@@ -49,7 +50,12 @@ namespace NumeralDash.Entities
 
         #region Number Handling
 
-        public Number Collect(Number n)
+        /// <summary>
+        /// Places the number in the player's inventory or collects it if it matches Rule.NextNumber.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public Number PickUp(Number n)
         {
             if (n.Position != Position)
             {
@@ -62,18 +68,18 @@ namespace NumeralDash.Entities
             }
 
             // check if the number can be collected and placed in the numbers list
-            else if (_numbers.Count > 0 && _collectionOrder.GetNext(_numbers.Last()) == n)
+            else if (_dungeon.Rule.NextNumber == n)
             {
-                _numbers.Add(n);
+                DepositNumber(n);
 
                 // check if the number in the inventory can now be placed in the numbers list as well
-                if (_collectionOrder.GetNext(_numbers.Last()) == _inventory)
+                if (_dungeon.Rule.NextNumber == _inventory)
                 {
-                    _numbers.Add(_inventory);
+                    DepositNumber(_inventory);
                     _inventory = Number.Empty;
                     OnInventoryChanged();
                 }
-                OnNumbersChanged();
+                
                 return Number.Empty;
             }
 
@@ -87,6 +93,17 @@ namespace NumeralDash.Entities
             }
         }
 
+        /// <summary>
+        /// Add the number to _numbers, trigger event & set next number.
+        /// </summary>
+        /// <param name="n">Number to deposit.</param>
+        void DepositNumber(Number n)
+        {
+            _numbers.Add(n);
+            _dungeon.Rule.SetNextNumber();
+            OnNumbersChanged();
+        }
+
         #endregion
 
         #region Events
@@ -96,7 +113,7 @@ namespace NumeralDash.Entities
         /// </summary>
         void OnInventoryChanged()
         {
-            InventoryChanged?.Invoke(this, EventArgs.Empty);
+            InventoryChanged?.Invoke(_inventory);
         }
 
         /// <summary>
@@ -104,18 +121,18 @@ namespace NumeralDash.Entities
         /// </summary>
         void OnNumbersChanged()
         {
-            NumbersChanged?.Invoke(this, EventArgs.Empty);
+            DepositMade?.Invoke(_numbers.Last());
         }
 
         /// <summary>
         /// Raised when the player has placed a new number in their inventory.
         /// </summary>
-        public event EventHandler? InventoryChanged;
+        public event Action<Number>? InventoryChanged;
 
         /// <summary>
         /// Raised when the player has collected a valid number and placed it in their numbers list;
         /// </summary>
-        public event EventHandler? NumbersChanged;
+        public event Action<Number>? DepositMade;
 
         #endregion
     }

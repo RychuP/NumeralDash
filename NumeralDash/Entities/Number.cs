@@ -25,12 +25,14 @@ namespace NumeralDash.Entities
         }
 
         /// <summary>
-        /// How many tiles this number occupies
+        /// How many tiles this number occupies.
         /// </summary>
         public int Size     
         {
             get => _value.ToString().Length;
         }
+
+        public Color Color => Appearance.Foreground;
 
         public override bool Equals(object? obj)
         {
@@ -43,7 +45,7 @@ namespace NumeralDash.Entities
             return _value.GetHashCode();
         }
 
-        public override string ToString() => _value.ToString();
+        public override string ToString() => _value == Empty ? "" : _value.ToString();
 
         /// <summary>
         /// Returns the underlying int value.

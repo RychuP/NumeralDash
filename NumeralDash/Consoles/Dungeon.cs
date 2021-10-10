@@ -7,6 +7,7 @@ using NumeralDash.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using NumeralDash.Rules;
+using SadConsole.Input;
 
 namespace NumeralDash.Consoles
 {
@@ -15,44 +16,74 @@ namespace NumeralDash.Consoles
         // settings
         const float numbersPerRoom = 1.25f;
 
-        Map _map;
-        Player _player;
-        Renderer _entityManager;
+        #region Storage
 
-        public Dungeon(int viewSizeX, int viewSizeY, Map map) : base(viewSizeX, viewSizeY, map.Width, map.Height, map.Tiles)
+        // fields
+        readonly Map _blankMap;
+        Map _map;
+        readonly Renderer _entityManager;
+
+        // public properties
+        public Player Player { get; init; }
+
+        public IRule Rule { get; private set; }
+
+        #endregion
+
+        public Dungeon(int viewSizeX, int viewSizeY, Map blankMap) : 
+            base(viewSizeX, viewSizeY, blankMap.Width, blankMap.Height, blankMap.Tiles)
         {
-            _map = map;
+            _blankMap = blankMap;
+            _map = blankMap;
             Font = Game.Instance.Fonts["C64"];
 
             // entity manager
             _entityManager = new Renderer();
             SadComponents.Add(_entityManager);
 
-            // select a rule for number collections
-            int numberOfRules = 2, numberCount = Convert.ToInt32(map.Rooms.Count * numbersPerRoom);
-            var ruleNumber = Program.GetRandomIndex(numberOfRules);
-            IRule rule = ruleNumber switch
+            // set a temp rule
+            Rule = new EmptyOrder();
+
+            // create a player
+            Player = new Player(_map.PlayerStartPosition, this);
+            SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = Player });
+            _entityManager.Add(Player);
+        }
+
+        public void Start()
+        {
+
+        }
+
+        void ChangeLevel(int level)
+        {
+            try
             {
-                0 => new SequentialOrder(numberCount),
-                _ => new RandomOrder(numberCount)
-            };
+                _map = new(level);
+            }
+            catch (OverflowException)
+            {
+                _map = _blankMap;
+                OnMapFailedToGenerate();
+            }
+        }
 
-            // spawn the player
-            _player = new Player(_map.PlayerStartPosition, rule);
-            SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = _player });
-            _entityManager.Add(_player);
-
-            // spawn entities (numbers and the exit)
+        /// <summary>
+        /// Spawns entities (all numbers and an exit).
+        /// </summary>
+        void SpawnEntities()
+        {
+            
             Room room;
-            for (int i = 0; i < numberCount + 1 /* 1 for the exit */; i++)
+            for (int i = 0; i < Rule.Numbers.Length + 1 /* 1 for the exit */; i++)
             {
-                Entity n = (i < numberCount) ? rule.Numbers[i] : new Exit(rule);
+                Entity n = (i < Rule.Numbers.Length) ? Rule.Numbers[i] : new Exit(Rule);
                 _entityManager.Add(n);
 
                 // keep looking for a room that will accept this entity
-                if (map.Rooms.Any(room => room.CanAddEntity(n))) 
+                if (_map.Rooms.Any(room => room.CanAddEntity(n)))
                 {
-                    do room = _map.GetRandomRoom(); 
+                    do room = _map.GetRandomRoom();
                     while (!room.AddEntity(n, _map.PlayerStartPosition));
                 }
                 else
@@ -62,12 +93,29 @@ namespace NumeralDash.Consoles
             }
         }
 
+        /// <summary>
+        /// Selects a new rule for number collections.
+        /// </summary>
+        void ChangeRule()
+        {
+            // select a rule for number collections
+            int numberOfRules = 2, numberCount = Convert.ToInt32(_map.Rooms.Count * numbersPerRoom);
+            var ruleNumber = Program.GetRandomIndex(numberOfRules);
+            Rule = ruleNumber switch
+            {
+                0 => new SequentialOrder(numberCount),
+                _ => new RandomOrder(numberCount)
+            };
+        }
+
+        #region Player Management
+
         public bool MovePlayer(Point direction)
         {
-            Point tileCoord = _player.GetNextMove(direction);
+            Point tileCoord = Player.GetNextMove(direction);
             if (_map.TileIsWalkable(tileCoord, out Room? room))
             {
-                _player.MoveTo(tileCoord);
+                Player.MoveTo(tileCoord);
 
                 // look for entities
                 if (room is not null && room.GetEntityAt(tileCoord) is Entity e)
@@ -79,14 +127,14 @@ namespace NumeralDash.Consoles
 
                     if (e is Number n)
                     {
-                        Number drop = _player.Collect(n);
+                        Number drop = Player.PickUp(n);
                         room.ReplaceNumber(n, drop);
                     }
 
                     // check if the exit allows passage (all the numbers are collected)
                     else if (e is Exit x && x.AllowsPassage())
                     {
-                        OnLevelCompleted();
+                        OnLevelComplete();
                     }
                 }
 
@@ -95,13 +143,90 @@ namespace NumeralDash.Consoles
             return false;
         }
 
-        public string[] GetTileInfo() => _map.GetTileInfo(_player.Position);
-
-        void OnLevelCompleted()
+        public override bool ProcessKeyboard(Keyboard keyboard)
         {
-            LevelCompleted?.Invoke(this, EventArgs.Empty);
+            if (keyboard.HasKeysPressed)
+            {
+                Point direction = (0, 0);
+
+                if (keyboard.IsKeyPressed(Keys.Up))
+                {
+                    direction += Direction.Up;
+                }
+                else if (keyboard.IsKeyPressed(Keys.Down))
+                {
+                    direction += Direction.Down;
+                }
+
+                if (keyboard.IsKeyPressed(Keys.Left))
+                {
+                    direction += Direction.Left;
+                }
+                else if (keyboard.IsKeyPressed(Keys.Right))
+                {
+                    direction += Direction.Right;
+                }
+
+                // check if the direction has changed at all
+                if (direction.X != 0 || direction.Y != 0)
+                {
+                    MovePlayer(direction);
+                    OnPlayerMoved();
+                }
+            }
+
+            return base.ProcessKeyboard(keyboard);
         }
 
-        public event EventHandler? LevelCompleted;
+        #endregion
+
+        #region Events
+
+        void OnPlayerMoved()
+        {
+            PlayerMoved?.Invoke(_map.GetTileInfo(Player.Position));
+        }
+
+        public event Action<string[]>? PlayerMoved;
+
+        void OnLevelComplete()
+        {
+            LevelComplete?.Invoke();
+        }
+
+        public event Action? LevelComplete;
+
+        void OnLevelChanged()
+        {
+            LevelChanged?.Invoke(Rule, )
+        }
+
+        public event Action<IRule, int>? LevelChanged;
+
+        void OnMapFailedToGenerate()
+        {
+            MapFailedToGenerate?.Invoke("Failure.");
+        }
+
+        public event Action<string>? MapFailedToGenerate;
+
+        void OnMapGeneratedSuccessfully()
+        {
+            var mapGenerationInfo = new string[]
+            {
+                $"There are {_map.Rooms.Count} rooms in this dungeon. " +
+                    $"Screen x cells: { Game.Instance.ScreenCellsX}, y cells: { Game.Instance.ScreenCellsY}",
+                $"Dungeon size: {Area.Size}, Dungeon view size: ({ViewWidth}, {ViewHeight}).",
+                $"All rooms are connected: {_map.AllRoomsAreConnected}, " +
+                    $"AllRoomsAreReachable() iterations: {_map.noOfChecksForAllRoomReachability}, " +
+                    $"Failed attempts at map generation: {_map.FailedAttemptsAtGeneratingMap}"
+            };
+
+            MapGeneratedSuccessfully?.Invoke(mapGenerationInfo);
+        }
+
+        public event Action<string[]>? MapGeneratedSuccessfully;
+
+        #endregion
     }
 }
