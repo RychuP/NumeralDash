@@ -119,6 +119,7 @@ namespace NumeralDash.Consoles
 
             // spawn exit
             var exit = new Exit();
+            _entityManager.Add(exit);
             FindRoomForCollidable(exit);
 
             // reposition player to the new start point

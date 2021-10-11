@@ -14,6 +14,7 @@ namespace NumeralDash.Entities
         public Exit() : base(Color.White, Color.Black, 240, (int) Layer.Items)
         {
             _coords = new Point[1] { Position };
+            Name = "Exit";
         }
 
         public bool AllowsPassage()

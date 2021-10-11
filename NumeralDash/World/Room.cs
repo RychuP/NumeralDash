@@ -256,7 +256,10 @@ namespace NumeralDash.World
             if (!ReachedEntityLimit())
             {
                 // get a random position for the entity in the room
-                do c.Coord = GetRandomPosition();
+                do
+                {
+                    c.Coord = GetRandomPosition();
+                }
                 while (
                     // check if the position of the new number does not fall on the perimeter of the room
                     Area.PerimeterPositions().Any(p => c.CollidesWith(p)) ||
@@ -265,7 +268,7 @@ namespace NumeralDash.World
                     _collidables.Any(e => e.Coords[0].Y == c.Coords[0].Y) ||
 
                     // check if none of the other entities in the room would become a direct neighbour of the new entity
-                    _collidables.Any(e => e.GetExpandedArea().Any(p => c.CollidesWith(p))) ||
+                    _collidables.Any(e => e.Coords[0].GetDirectionPoints().Contains(c.Coords[0])) ||
 
                     // check if the number will not spawn too close to the player position
                     PlayerPosition.GetDirectionPoints().Any(p => c.CollidesWith(p))

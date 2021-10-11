@@ -28,6 +28,8 @@ namespace NumeralDash.Entities
         /// <param name="value"></param>
         public Number(int value) : base(Color.White, Color.Black, value.ToString()[0], (int) Layer.Items)
         {
+            Name = $"Number_{value}";
+
             _value = value;
             _coords = new Point[Size];
 

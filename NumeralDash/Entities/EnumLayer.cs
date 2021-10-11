@@ -2,7 +2,7 @@
 {
     enum Layer
     {
-        Items,
+        Items = 1,
         Player
     }
 }
