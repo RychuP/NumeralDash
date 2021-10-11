@@ -57,11 +57,6 @@ namespace NumeralDash.Entities
         /// <returns></returns>
         public Number PickUp(Number n)
         {
-            if (n.Position != Position)
-            {
-                throw new ArgumentException("Number's position is not the same as player's position.");
-            }
-
             if (_numbers.Contains(n) || (_inventory == n))
             {
                 throw new ArgumentException("Trying to collect a duplicate number.");

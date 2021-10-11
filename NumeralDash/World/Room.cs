@@ -38,7 +38,7 @@ namespace NumeralDash.World
         /// <summary>
         /// All roads connected to this room.
         /// </summary>
-        List<Road> _roads;
+        readonly List<Road> _roads;
 
         /// <summary>
         /// Backing field for the Area property.
@@ -53,7 +53,7 @@ namespace NumeralDash.World
         /// <summary>
         /// All layer 1 entities currently in this room.
         /// </summary>
-        List<Entity> _entities;
+        readonly List<ICollidable> _collidables;
 
         /// <summary>
         /// Whether this room has already been visited by the player or not.
@@ -70,7 +70,7 @@ namespace NumeralDash.World
         public Room(int minSize, int maxSize) : base()
         {
             _roads = new();
-            _entities = new();
+            _collidables = new();
 
             // generate an id
             ID = counter++;
@@ -243,7 +243,7 @@ namespace NumeralDash.World
         /// <summary>
         /// Checks if it's possible to add another entity to the room.
         /// </summary>
-        public bool CanAddEntity(Entity e) => _entities.Count < EntityLimit;
+        public bool ReachedEntityLimit() => _collidables.Count >= EntityLimit;
 
         /// <summary>
         /// Adds a new entity to the room.
@@ -251,24 +251,28 @@ namespace NumeralDash.World
         /// <param name="e">The new entity.</param>
         /// <param name="PlayerPosition">Prevents spawning entities too close to the player.</param>
         /// <returns>True if operation was successful.</returns>
-        public bool AddEntity(Entity e, Point PlayerPosition)
+        public bool AddCollidable(ICollidable c, Point PlayerPosition)
         {
-            if (CanAddEntity(e))
+            if (!ReachedEntityLimit())
             {
-                // get a random position for the number in the room
-                do e.Position = GetRandomPosition();
+                // get a random position for the entity in the room
+                do c.Coord = GetRandomPosition();
                 while (
                     // check if the position of the new number does not fall on the perimeter of the room
-                    Area.PerimeterPositions().Contains(e.Position) ||
+                    Area.PerimeterPositions().Any(p => c.CollidesWith(p)) ||
 
-                    // check if  none of all the other numbers in the room would become a direct neighbour of the new number
-                    _entities.Any(number => number.Position.GetDirectionPoints().Contains(e.Position)) ||
+                    // check if the position is not on the same row as any of the other entities in the room
+                    _collidables.Any(e => e.Coords[0].Y == c.Coords[0].Y) ||
 
-                    // check if the number will not spawn right on player position
-                    e.Position == PlayerPosition);
+                    // check if none of the other entities in the room would become a direct neighbour of the new entity
+                    _collidables.Any(e => e.GetExpandedArea().Any(p => c.CollidesWith(p))) ||
+
+                    // check if the number will not spawn too close to the player position
+                    PlayerPosition.GetDirectionPoints().Any(p => c.CollidesWith(p))
+                );
 
                 // add the number to the room
-                _entities.Add(e);
+                _collidables.Add(c);
 
                 // report success
                 return true;
@@ -282,27 +286,35 @@ namespace NumeralDash.World
         /// </summary>
         /// <param name="p">Position in the room.</param>
         /// <returns></returns>
-        public Entity? GetEntityAt(Point p) => _entities.Find(entity => entity.Position == p);
+        public ICollidable? GetCollidableAt(Point p) => _collidables.Find(c => c.Coords.Contains(p));
 
-        public void ReplaceNumber(Number n, Number drop)
+        public void RemoveNumber(Number n)
         {
-            if (_entities.Contains(n))
+            if (_collidables.Contains(n))
             {
-                // remove the number from the room and hide it
-                _entities.Remove(n);
-                n.IsVisible = false;
-
-                if (drop != Number.Empty && drop != Number.Finished)
-                {
-                    // add a replacement number and show it
-                    _entities.Add(drop);
-                    drop.Position = n.Position;
-                    drop.IsVisible = true;
-                }
+                _collidables.Remove(n);
+                n.MarkAsInvisible();
             }
             else
             {
-                throw new ArgumentException($"Problem with replacing a number {n} in the room.");
+                throw new InvalidOperationException("Attempt at removing a number from a room that doesn't contain it.");
+            }
+        }
+
+        public void PlaceNumber(Number n, Point p)
+        {
+            if (n != Number.Empty && n != Number.Finished)
+            {
+                _collidables.Add(n);
+                n.Coord = p;
+
+                // if the number is large, keep moving it left until it fits inside the room
+                while (Area.PerimeterPositions().Any(point => n.CollidesWith(point)))
+                {
+                    n.Coord = n.Coords[0] + Direction.Left;
+                }
+
+                n.MarkAsVisible();
             }
         }
 

@@ -59,23 +59,34 @@ namespace NumeralDash.Consoles
 
         void ChangeLevel()
         {
+            /*
+            _map = new(_level++);
+            ChangeMap();
+            ChangeRule();
+            SpawnEntities();
+            OnLevelChanged();
+            */
+
             try
             {
+                _map = new(_level++);
                 ChangeMap();
                 ChangeRule();
                 SpawnEntities();
                 OnLevelChanged();
             }
-            catch (OverflowException)
+            catch
             {
                 _map = _blankMap;
+                ChangeMap();
+                Player.Position = _map.PlayerStartPosition;
                 OnMapFailedToGenerate();
             }
+            
         }
 
         void ChangeMap()
         {
-            _map = new(_level++);
             int x = ViewWidth, y = ViewHeight;
             Surface = new CellSurface(_map.Width, _map.Height, _map.Tiles);
             ViewWidth = x;
@@ -83,30 +94,49 @@ namespace NumeralDash.Consoles
         }
 
         /// <summary>
-        /// Spawns entities (all numbers and an exit).
+        /// Spawns entities (all numbers and the exit).
         /// </summary>
         void SpawnEntities()
         {
-            Room room;
-            for (int i = 0; i < Rule.Numbers.Length + 1 /* 1 for the exit */; i++)
+            // spawn numbers
+            for (int i = 0; i < Rule.Numbers.Length; i++)
             {
-                Entity n = (i < Rule.Numbers.Length) ? Rule.Numbers[i] : new Exit(Rule);
-                _entityManager.Add(n);
+                ICollidable c = Rule.Numbers[i];
+                FindRoomForCollidable(c);
 
-                // keep looking for a room that will accept this entity
-                if (_map.Rooms.Any(room => room.CanAddEntity(n)))
+                // register entity
+                _entityManager.Add(c as Entity);
+
+                // register number extensions if any
+                if (c.Size > 1 && c is Number n)
                 {
-                    do room = _map.GetRandomRoom();
-                    while (!room.AddEntity(n, _map.PlayerStartPosition));
-                }
-                else
-                {
-                    throw new ArgumentException($"Excessive number of entities. No room can accept {i}.");
+                    foreach (var e in n.Extensions)
+                    {
+                        _entityManager.Add(e);
+                    }
                 }
             }
 
+            // spawn exit
+            var exit = new Exit();
+            FindRoomForCollidable(exit);
+
             // reposition player to the new start point
             Player.Position = _map.PlayerStartPosition;
+        }
+
+        void FindRoomForCollidable(ICollidable c)
+        {
+            Room room;
+            if (_map.Rooms.Any(room => !room.ReachedEntityLimit()))
+            {
+                do room = _map.GetRandomRoom();
+                while (!room.AddCollidable(c, _map.PlayerStartPosition));
+            }
+            else
+            {
+                throw new ArgumentException($"Excessive number of entities. No room can accept {c}.");
+            }
         }
 
         /// <summary>
@@ -135,24 +165,30 @@ namespace NumeralDash.Consoles
             {
                 Player.MoveTo(tileCoord);
 
-                // look for entities
-                if (room is not null && room.GetEntityAt(tileCoord) is Entity e)
+                // check if the tile belongs to a room
+                if (room is not null)
                 {
+                    // mark it as visited if not already
                     if (!room.Visited)
                     {
                         room.Visited = true;
                     }
 
-                    if (e is Number n)
+                    // look for entities at the player's position
+                    if (room.GetCollidableAt(tileCoord) is Entity e)
                     {
-                        Number drop = Player.PickUp(n);
-                        room.ReplaceNumber(n, drop);
-                    }
+                        if (e is Number n)
+                        {
+                            room.RemoveNumber(n);
+                            Number drop = Player.PickUp(n);
+                            room.PlaceNumber(drop, n.Position);
+                        }
 
-                    // check if the exit allows passage (all the numbers are collected)
-                    else if (e is Exit x && x.AllowsPassage())
-                    {
-                        OnLevelComplete();
+                        // check if the exit allows passage (all the numbers are collected)
+                        else if (e is Exit x && x.AllowsPassage())
+                        {
+                            OnLevelComplete();
+                        }
                     }
                 }
 
