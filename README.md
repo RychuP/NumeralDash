@@ -1,20 +1,23 @@
 # Numeral Dash
 Current mechanic:
-1. Player needs to collect all numbers from the map.
-2. They need to be picked up in a given order, which is chosen at random when the level is generated.
+1. Player needs to collect all numbers from the dungeon.
+2. Numbers have to be collected in a given order, which is chosen at random (out of two currently available) when the level is generated.
 3. Player can carry one number in ther inventory for later use. It will be used automatically if the right number is collected. It may be replaced with a different number.
 
-Controls:
+## Controls:
 
 Arrow buttons to move, F5 to switch full screen.
 
-To be implemented:
-1. Game information in the status and inventory windows.
-2. Timer.
-3. Menu system.
-4. Difficulty levels.
-5. Making the map bigger and the time to complete shorter with each completed level.
+## To be implemented:
+1. Timer.
+2. Menu system.
+3. Difficulty levels.
+4. Quick move with a shift button modifier.
 
-Game engine:
+## Game engine:
 
 SadConsole v9.1.1
+
+## Screenshots
+
+![screenshot](/screenshot.png)
