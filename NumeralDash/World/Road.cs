@@ -96,7 +96,7 @@ namespace NumeralDash.World
 
         public static int GetRandomLegLength() => Game.Instance.Random.Next(MinLegLength, MaxLegLength);
 
-        public override string ToString() => $"RoadID {ID}";
+        public override string ToString() => $"Road {ID}";
 
         public string GetInfo() => $"Connects: {_rooms.Count} rooms, Length: {_points.Count}, Legs: {_legs}, Color: {Color.ToParser()}";
 

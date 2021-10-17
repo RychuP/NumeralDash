@@ -6,53 +6,147 @@ using NumeralDash.Entities;
 using NumeralDash.Rules;
 using SadConsole;
 using SadRogue.Primitives;
+using Console = SadConsole.Console;
 
 namespace NumeralDash.Consoles
 {
-    class SideWindow : SadConsole.Console
+    class SideWindow : Console
     {
         // settings
-        const int borderLeft = 1,
-            borderRight = 1,
-            borderTop = 1,
-            borderBottom = 0,
-            contentBorderTop = 1;
+        const int border = 1;       // content border on all sides
 
-        record Item(string Name, string Title)
+        class Item
         {
+            // settings
+            const int contentBorderTop = 1;
+
+            // properties
+            public string Name;
+            public string Title;
             public Point Position;
+            public int Width;
+
+            public Item(string name) : this(name, name) { }
+
+            public Item(string name, string title)
+            {
+                Name = name;
+                Title = title;
+            }
+
+            /// <summary>
+            /// Displays initial look for the item.
+            /// </summary>
+            /// <param name="c"></param>
+            public void Display(Console c)
+            {
+                // print title
+                string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, '-');
+                c.Print(Position.X, Position.Y, title);
+            }
+
+            /// <summary>
+            /// Displays content for the item.
+            /// </summary>
+            /// <param name="c"></param>
+            /// <param name="s"></param>
+            /// <param name="k"></param>
+            public void Display(Console c, string s, Color k)
+            {
+                s = s.Align(HorizontalAlignment.Center, Width);
+                ColoredString cs = s.CreateColored(k);
+                c.Print(Position.X, Position.Y + contentBorderTop + 1, cs);
+            }
+
+            public void Clear(Console c)
+            {
+                Display(c, string.Empty, c.DefaultForeground);
+            }
+        }
+
+        class Row
+        {
+            public int Height = 4;
+            List<Item> _items = new();
+
+            public Row(Item item)
+            {
+                _items.Add(item);
+            }
+
+            public Row(Item i1, Item i2)
+            {
+                _items.Add(i1);
+                _items.Add(i2);
+            }
+
+            // initial display of the items
+            public void Display(Console c, int y, int border)
+            {
+                int plusSignsCount = _items.Count - 1;
+                int plusSignsDisplayed = 0;
+                int itemWidth = (c.Width - border * 2 - plusSignsCount) / _items.Count;
+                int x = border;
+
+                foreach(var item in _items)
+                {
+                    // display item title
+                    item.Width = itemWidth;
+                    item.Position = (x, y);
+                    item.Display(c);
+
+                    // display divider between items if any
+                    if (plusSignsCount > 0 && plusSignsDisplayed < plusSignsCount)
+                    {
+                        x += itemWidth;
+                        c.Print(x, y, "+");
+                        c.Print(x, y + 1, "|");
+                        c.Print(x, y + 2, "|");
+                        c.Print(x, y + 3, "|");
+                        plusSignsDisplayed++;
+                    }
+
+                    // shift x for the next item
+                    x++;
+                }
+            }
+
+            public void Clear(Console c)
+            {
+                foreach (var item in _items)
+                {
+                    item.Clear(c);
+                }
+            }
+
+            public bool Contains(string itemName) => GetItem(itemName) is not null;
+
+            public Item? GetItem(string name) => _items.Find(i => i.Name == name);
         }
 
         /// <summary>
         /// Items to be displayed in the window.
         /// </summary>
-        Item[] _items = new Item[]
+        Row[] _rows = new Row[]
         {
-            new Item("Rule", "Rule"),
-            new Item("Next", "Next"),
-            new Item("Last", "Last"),
-            new Item("Inv", "Inventory"),
-            new Item("All", "Total Collected"),
-            new Item("Remain", "Total Remaining"),
+            new Row( new Item("Rule") ),
+            new Row( new Item("Next") ),
+            new Row( new Item("Inv"), new Item("Last") ),
+            new Row( new Item("Timer") ),
+            new Row( new Item("Level") ),
+            new Row( new Item("Total"), new Item("Remain") )
         };
 
         public SideWindow(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
         {
+            // coordinate for each row
+            int y = border;
+
             // display items
-            int x = borderLeft, y = borderTop;
-            foreach (var item in _items)
+            foreach (var row in _rows)
             {
-                // print item title
-                string title = $" {item.Title}: ".Align(HorizontalAlignment.Center, Width, '-');
-                title = title[borderLeft..^borderRight];
-                this.Print(x, y, title);
-
-                // save position for the item content
-                item.Position = (x, y + contentBorderTop + 1);
-
-                // calculate position for the next item
-                int sizeOfThePrevItem = contentBorderTop + 1 /* content */ + borderBottom;
-                y += sizeOfThePrevItem + borderTop + 1 /* beginning of the next content */;
+                row.Display(this, y, border);
+                y += row.Height;
             }
 
             // hook events
@@ -64,12 +158,19 @@ namespace NumeralDash.Consoles
 
         public void PrintItemContent(string itemName, string s, Color c)
         {
-            var item = Array.Find(_items, i => i.Name == itemName);
-            if (item is Item i)
+            var row = Array.Find(_rows, r => r.Contains(itemName));
+
+            if (row is Row r)
             {
-                s = s.Align(HorizontalAlignment.Center, Width - borderLeft - borderRight);
-                ColoredString cs = s.CreateColored(c);
-                this.Print(i.Position.X, i.Position.Y, cs);
+                var item = r.GetItem(itemName);
+                if (item is Item i)
+                {
+                    i.Display(this, s, c);
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown item {itemName}.");
             }
         }
 
@@ -78,9 +179,9 @@ namespace NumeralDash.Consoles
         /// </summary>
         void ClearItems()
         {
-            foreach (var item in _items)
+            foreach (var row in _rows)
             {
-                PrintItemContent(item.Name, string.Empty, DefaultForeground);
+                row.Clear(this);
             }
         }
 
@@ -113,12 +214,13 @@ namespace NumeralDash.Consoles
         void OnDepositMade(Number n, int totalNumbers)
         {
             PrintItemContent("Last", n.ToString(), n.Color);
-            PrintItemContent("All", totalNumbers.ToString(), Color.White);
+            PrintItemContent("Total", totalNumbers.ToString(), Color.White);
         }
 
         void OnLevelChanged(IRule rule, int level, string[] s)
         {
             ClearItems();
+            PrintItemContent("Level", level.ToString(), DefaultForeground);
             OnRuleChanged(rule);
         }
 

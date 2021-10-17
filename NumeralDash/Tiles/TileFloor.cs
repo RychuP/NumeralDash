@@ -16,7 +16,7 @@ namespace NumeralDash.Tiles
             Parent = parent;
         }
 
-        public override string GetInfo() => $"{Name} Parent: {Parent}, {Parent.GetInfo()}";
+        public override string GetInfo() => $"{Name} belongs to: {Parent}, {Parent.GetInfo()}";
 
         public string[] GetExtendedInfo(Point p)
         {

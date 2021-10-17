@@ -323,7 +323,7 @@ namespace NumeralDash.World
 
         #endregion
 
-        public override string ToString() => $"RoomID {ID}";
+        public override string ToString() => $"Room {ID}";
 
         public string GetInfo() => $"Area: {Area.Size}, Position: {Area.Position}, Roads: {RoadCount}";
     }
