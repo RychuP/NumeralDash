@@ -13,6 +13,7 @@ Arrow buttons to move, F5 to switch full screen.
 2. Menu system.
 3. Difficulty levels.
 4. Quick move with a shift button modifier.
+5. Improve level generation.
 
 ## Game engine:
 
