@@ -13,15 +13,12 @@ namespace NumeralDash.Consoles
 {
     class Dungeon : SadConsole.Console
     {
-        // settings
-        const float numbersPerRoom = 1.25f;
-
         #region Storage
 
         // fields
-        readonly Renderer _entityManager;
         readonly Map _blankMap;
-        int _level = 1;
+        Renderer _entityManager;
+        int _level = 0;
         Map _map;
 
         // public properties
@@ -37,7 +34,7 @@ namespace NumeralDash.Consoles
             _map = blankMap;
             Font = Game.Instance.Fonts["C64"];
 
-            // entity manager
+            // entity manager (temporary -> will be removed in ChangeMap)
             _entityManager = new Renderer();
             SadComponents.Add(_entityManager);
 
@@ -47,7 +44,6 @@ namespace NumeralDash.Consoles
             // create a player
             Player = new Player(_map.PlayerStartPosition, this);
             SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = Player });
-            _entityManager.Add(Player);
         }
 
         #region Level Management
@@ -59,14 +55,6 @@ namespace NumeralDash.Consoles
 
         void ChangeLevel()
         {
-            /*
-            _map = new(_level++);
-            ChangeMap();
-            ChangeRule();
-            SpawnEntities();
-            OnLevelChanged();
-            */
-
             try
             {
                 _map = new(_level++);
@@ -87,10 +75,21 @@ namespace NumeralDash.Consoles
 
         void ChangeMap()
         {
+            // get new surface
             int x = ViewWidth, y = ViewHeight;
             Surface = new CellSurface(_map.Width, _map.Height, _map.Tiles);
             ViewWidth = x;
             ViewHeight = y;
+
+            // remove prev renderer
+            SadComponents.Remove(_entityManager);
+
+            // get new renderer
+            _entityManager = new Renderer();
+            SadComponents.Add(_entityManager);
+
+            // register player with the renderer
+            _entityManager.Add(Player);
         }
 
         /// <summary>
@@ -101,8 +100,9 @@ namespace NumeralDash.Consoles
             // spawn numbers
             for (int i = 0; i < Rule.Numbers.Length; i++)
             {
+                // find a room for the new collidable entity (number)
                 ICollidable c = Rule.Numbers[i];
-                FindRoomForCollidable(c);
+                PlaceCollidableInRandomRoom(c);
 
                 // register entity
                 _entityManager.Add(c as Entity);
@@ -119,14 +119,14 @@ namespace NumeralDash.Consoles
 
             // spawn exit
             var exit = new Exit();
+            PlaceCollidableInRandomRoom(exit);
             _entityManager.Add(exit);
-            FindRoomForCollidable(exit);
 
             // reposition player to the new start point
             Player.Position = _map.PlayerStartPosition;
         }
 
-        void FindRoomForCollidable(ICollidable c)
+        void PlaceCollidableInRandomRoom(ICollidable c)
         {
             Room room;
             if (_map.Rooms.Any(room => !room.ReachedEntityLimit()))
@@ -146,12 +146,11 @@ namespace NumeralDash.Consoles
         void ChangeRule()
         {
             // select a rule for number collections
-            int numberOfRules = 2, numberCount = Convert.ToInt32(_map.Rooms.Count * numbersPerRoom);
-            var ruleNumber = Program.GetRandomIndex(numberOfRules);
+            var ruleNumber = Program.GetRandomIndex(2 /* number of rules in the switch expression */);
             Rule = ruleNumber switch
             {
-                0 => new SequentialOrder(numberCount),
-                _ => new RandomOrder(numberCount)
+                0 => new SequentialOrder(_map.NumberCount),
+                _ => new RandomOrder(_map.NumberCount)
             };
         }
 
@@ -185,10 +184,10 @@ namespace NumeralDash.Consoles
                             room.PlaceNumber(drop, n.Position);
                         }
 
-                        // check if the exit allows passage (all the numbers are collected)
-                        else if (e is Exit x && x.AllowsPassage())
+                        // check if the level is completed
+                        else if (e is Exit && Rule.NextNumber == Number.Finished)
                         {
-                            OnLevelComplete();
+                            ChangeLevel();
                         }
                     }
                 }
@@ -225,8 +224,17 @@ namespace NumeralDash.Consoles
                 // check if the direction has changed at all
                 if (direction.X != 0 || direction.Y != 0)
                 {
+                    // save the current level number to see if the player's move triggered a change
+                    int currentLevel = _level;
+
+                    // move the player
                     MovePlayer(direction);
-                    OnPlayerMoved();
+
+                    // if the map remains the same, trigger an event
+                    if (currentLevel == _level)
+                    {
+                        OnPlayerMoved();
+                    }
                 }
             }
 
@@ -244,20 +252,11 @@ namespace NumeralDash.Consoles
 
         public event Action<string[]>? PlayerMoved;
 
-        void OnLevelComplete()
-        {
-            LevelComplete?.Invoke();
-        }
-
-        public event Action? LevelComplete;
-
         void OnLevelChanged()
         {
             var mapGenerationInfo = new string[]
             {
-                $"There are {_map.Rooms.Count} rooms in this dungeon. " +
-                    $"Screen x cells: { Game.Instance.ScreenCellsX}, y cells: { Game.Instance.ScreenCellsY}",
-                $"Dungeon size: {Area.Size}, Dungeon view size: ({ViewWidth}, {ViewHeight}).",
+                $"Dungeon level: {_level}. Rooms: {_map.Rooms.Count}. Map size: {Area.Size}.",
                 $"All rooms are connected: {_map.AllRoomsAreConnected}, " +
                     $"AllRoomsAreReachable() iterations: {_map.noOfChecksForAllRoomReachability}, " +
                     $"Failed attempts at map generation: {_map.FailedAttemptsAtGeneratingMap}"
@@ -270,7 +269,7 @@ namespace NumeralDash.Consoles
 
         void OnMapFailedToGenerate()
         {
-            MapFailedToGenerate?.Invoke("Failure.");
+            MapFailedToGenerate?.Invoke("Map generation failed. Please restart the game.");
         }
 
         public event Action<string>? MapFailedToGenerate;

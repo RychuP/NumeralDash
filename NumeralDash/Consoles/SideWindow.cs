@@ -91,10 +91,11 @@ namespace NumeralDash.Consoles
             PrintItemContent("Inv", n.ToString(), n.Color);
         }
 
-        void OnNextNumberChanged(Number n)
+        void OnNextNumberChanged(Number n, int remainingNumbers)
         {
             var text = (n == Number.Finished) ? "Proceed to exit." : n.ToString();
             PrintItemContent("Next", text, n.Color);
+            PrintItemContent("Remain", remainingNumbers.ToString(), Color.White);
         }
 
         void OnRuleChanged(IRule r)
@@ -104,11 +105,9 @@ namespace NumeralDash.Consoles
 
             // hook event handlers to the new rule
             r.NextNumberChanged += OnNextNumberChanged;
-            r.RemainingNumbersChanged += OnRemainingNumbersChanged;
 
             // display rule info
-            OnNextNumberChanged(r.NextNumber);
-            OnRemainingNumbersChanged(r.Numbers.Length);
+            OnNextNumberChanged(r.NextNumber, r.Numbers.Length);
         }
 
         void OnDepositMade(Number n, int totalNumbers)
@@ -121,11 +120,6 @@ namespace NumeralDash.Consoles
         {
             ClearItems();
             OnRuleChanged(rule);
-        }
-
-        void OnRemainingNumbersChanged(int numbersRemaining)
-        {
-            PrintItemContent("Remain", numbersRemaining.ToString(), Color.White);
         }
 
         #endregion

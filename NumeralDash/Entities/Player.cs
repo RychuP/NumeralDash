@@ -19,10 +19,12 @@ namespace NumeralDash.Entities
 
         public Player(Point startPosition, Dungeon dungeon) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
         {
+            Name = "Player";
+            Position = startPosition;
             _numbers = new();
             _dungeon = dungeon;
             _inventory = Number.Empty;
-            Position = startPosition;
+            dungeon.LevelChanged += OnLevelChanged;
         }
 
         #region Position Handling
@@ -130,6 +132,12 @@ namespace NumeralDash.Entities
         /// Raised when the player has collected a valid number and placed it in their numbers list;
         /// </summary>
         public event Action<Number, int>? DepositMade;
+
+        void OnLevelChanged(IRule rule, int level, string[] s)
+        {
+            _numbers = new();
+            _inventory = Number.Empty;
+        }
 
         #endregion
     }

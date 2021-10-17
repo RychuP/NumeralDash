@@ -24,7 +24,6 @@ namespace NumeralDash.Rules
             SetNextNumber();
         }
 
-
         public void SetNextNumber()
         {
             if (RemainingNumbers.Count > 1)
@@ -32,19 +31,21 @@ namespace NumeralDash.Rules
                 int index = Program.GetRandomIndex(RemainingNumbers.Count);
                 NextNumber = RemainingNumbers[index];
                 RemainingNumbers.RemoveAt(index);
-                OnRemainingNumbersChanged();
+                OnNextNumberChanged(RemainingNumbers.Count + 1);
             }
             else if (RemainingNumbers.Count == 1)
             {
                 NextNumber = RemainingNumbers[0];
                 RemainingNumbers.RemoveAt(0);
-                OnRemainingNumbersChanged();
+                OnNextNumberChanged(1);
             }
-            else NextNumber = Number.Finished;
+            else
+            {
+                NextNumber = Number.Finished;
+                OnNextNumberChanged(0);
+            }
 
-            OnNextNumberChanged();
+            
         }
-
-        
     }
 }

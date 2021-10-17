@@ -23,6 +23,7 @@ namespace NumeralDash.Consoles
         public void Display(string[] txt)
         {
             this.Clear();
+
             int length = txt.Length < Height ? txt.Length : Height;
             for (int i = 0; i < length; i++)
             {
@@ -37,16 +38,12 @@ namespace NumeralDash.Consoles
 
         void OnMapFailedToGenerate(string txt)
         {
-            this.Print(2, 0, $"Map generation failed. Please restart the game.");
+            Display(txt);
         }
 
         void OnLevelChanged(IRule rule, int level, string[] txt)
         {
-            int y = 0;
-            foreach (string s in txt)
-            {
-                this.Print(2, y++, s);
-            }
+            Display(txt);
         }
     }
 }

@@ -16,17 +16,20 @@ namespace NumeralDash.World
         public bool AllRoomsAreConnected = false;
 
         // settings
-        const int defaultSize = 50, 
-            sizeModifier = 10,
-            maxRooms = 7,
-            maxRoomsModifier = 2,
-            minRoomSize = 5, 
-            maxRoomSize = 12;
+        const int defaultSize = 50,         // map is square -> this is the default length of its sides
+            sizeModifier = 5,               // by how much the map will grow each level
+            maxRooms = 5,                   // max amount of rooms to be generated on the first level
+            maxRoomsModifier = 2,           // amount of rooms that will be added each level
+            minRoomSize = 5,                // minimum length of any side of a room
+            maxRoomSize = 12;               // maximum length of any side of a room
+        const float numbersPerRoom = 1;
+
+        public int NumberCount => Convert.ToInt32(Rooms.Count* numbersPerRoom);
 
         #region Storage
 
         // list of all rooms
-        List<Room> _rooms;
+        List <Room> _rooms;
 
         // Width of the map
         public int Width { get; }
@@ -137,7 +140,7 @@ namespace NumeralDash.World
         #region Map Generator
         public bool Generate(int maxRooms, int minRoomSize, int maxRoomSize)
         {
-            int attemptCounter = 0, maxAttempts = maxRooms * 5;
+            int attemptCounter = 0, maxAttempts = maxRooms * 50;
 
             // create rooms on the map
             while (_rooms.Count < maxRooms && attemptCounter++ < maxAttempts)

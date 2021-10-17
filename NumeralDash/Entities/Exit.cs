@@ -17,11 +17,6 @@ namespace NumeralDash.Entities
             Name = "Exit";
         }
 
-        public bool AllowsPassage()
-        {
-            return false;
-        }
-
         public bool CollidesWith(Point p) => Position == p;
 
         public bool CollidesWith(ICollidable c) => c.Coords.Any(p => p == Position);

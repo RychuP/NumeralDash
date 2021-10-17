@@ -29,11 +29,13 @@ namespace NumeralDash.Rules
             {
                 NextNumber = RemainingNumbers[0];
                 RemainingNumbers.RemoveAt(0);
-                OnRemainingNumbersChanged();
+                OnNextNumberChanged(RemainingNumbers.Count + 1);
             }
-            else NextNumber = Number.Finished;
-
-            OnNextNumberChanged();
+            else
+            {
+                NextNumber = Number.Finished;
+                OnNextNumberChanged(0);
+            }
         }
     }
 }

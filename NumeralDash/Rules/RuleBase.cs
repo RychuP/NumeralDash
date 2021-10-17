@@ -50,19 +50,12 @@ namespace NumeralDash.Rules
 
         #region Events
 
-        protected void OnNextNumberChanged()
+        protected void OnNextNumberChanged(int numbersRemaining)
         {
-            NextNumberChanged?.Invoke(NextNumber);
+            NextNumberChanged?.Invoke(NextNumber, numbersRemaining);
         }
 
-        public event Action<Number>? NextNumberChanged;
-
-        protected void OnRemainingNumbersChanged()
-        {
-            RemainingNumbersChanged?.Invoke(RemainingNumbers.Count);
-        }
-
-        public event Action<int>? RemainingNumbersChanged;
+        public event Action<Number, int>? NextNumberChanged;
 
         #endregion
     }
