@@ -63,12 +63,12 @@ namespace NumeralDash.Consoles
                 SpawnEntities();
                 OnLevelChanged();
             }
-            catch
+            catch (MapGenerationException e)
             {
                 _map = _blankMap;
                 ChangeMap();
                 Player.Position = _map.PlayerStartPosition;
-                OnMapFailedToGenerate();
+                OnMapFailedToGenerate(e.FailedAttempts);
             }
             
         }
@@ -256,10 +256,7 @@ namespace NumeralDash.Consoles
         {
             var mapGenerationInfo = new string[]
             {
-                $"Dungeon level: {_level}. Rooms: {_map.Rooms.Count}. Map size: {Area.Size}.",
-                $"All rooms are connected: {_map.AllRoomsAreConnected}, " +
-                    $"AllRoomsAreReachable() iterations: {_map.noOfChecksForAllRoomReachability}, " +
-                    $"Failed attempts at map generation: {_map.FailedAttemptsAtGeneratingMap}"
+                $"Dungeon level: {_level}, number of rooms: {_map.Rooms.Count}, map size: {Area.Size}."
             };
 
             LevelChanged?.Invoke(Rule, _level, mapGenerationInfo);
@@ -267,12 +264,12 @@ namespace NumeralDash.Consoles
 
         public event Action<IRule, int, string[]>? LevelChanged;
 
-        void OnMapFailedToGenerate()
+        void OnMapFailedToGenerate(AttemptCounters failedAttempts)
         {
-            MapFailedToGenerate?.Invoke("Map generation failed. Please restart the game.");
+            MapFailedToGenerate?.Invoke(failedAttempts);
         }
 
-        public event Action<string>? MapFailedToGenerate;
+        public event Action<AttemptCounters>? MapFailedToGenerate;
 
         #endregion
     }

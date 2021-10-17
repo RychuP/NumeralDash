@@ -10,52 +10,85 @@ namespace NumeralDash.World
     // Stores, manipulates and queries Tile data
     class Map
     {
-        // for debugging
-        public int noOfChecksForAllRoomReachability = 0,
-            FailedAttemptsAtGeneratingMap = 0;
-        public bool AllRoomsAreConnected = false;
-
         // settings
-        const int defaultSize = 50,         // map is square -> this is the default length of its sides
-            sizeModifier = 5,               // by how much the map will grow each level
-            maxRooms = 5,                   // max amount of rooms to be generated on the first level
-            maxRoomsModifier = 2,           // amount of rooms that will be added each level
-            minRoomSize = 5,                // minimum length of any side of a room
-            maxRoomSize = 12;               // maximum length of any side of a room
-        const float numbersPerRoom = 1;
-
-        public int NumberCount => Convert.ToInt32(Rooms.Count* numbersPerRoom);
+        const int defaultSize = 50,              // map is square -> this is the default length of its sides
+            sizeModifier = 5,                    // by how much the map will grow each level
+            maxRooms = 5,                        // max amount of rooms to be generated on the first level
+            maxRoomsModifier = 2,                // amount of rooms that will be added each level
+            minRoomSize = 5,                     // minimum length of any side of a room
+            maxRoomSize = 12,                    // maximum length of any side of a room
+            maxRoomPositionAttempts = 20,        // max number of failed room position finding per room after which a new room is generated
+            maxRoomGenerationAttempts = 100,     // max number of failed room position finding per map generation after which an exception is thrown
+            maxRoadGenerationAttempts = 100,     // max number of failed road generations for all rooms per map generation after which an exception is thrown
+            generationAttemptsPerLevel = 10,     // this is added to the above 3 maxes and multiplied by _level
+            maxAttemptsMapGeneration = 100,      // how many times this object will try to generate a map with current settings
+            numbersPerRoom = 1;                  // how many numbers per room can this map accept
 
         #region Storage
 
-        // list of all rooms
-        List <Room> _rooms;
+        // for debugging
+        int _failedAttemptsMapGeneration = 0;
+        int _failedAttemptsRoomGeneration = 0;
+        int _failedAttemptsRoadGeneration = 0;
 
-        // Width of the map
+        /// <summary>
+        /// List of all rooms.
+        /// </summary>
+        readonly List <Room> _rooms;
+
+        /// <summary>
+        /// Width of the map.
+        /// </summary>
         public int Width { get; }
 
-        // Height of the map
+        /// <summary>
+        /// Height of the map.
+        /// </summary>
         public int Height { get; }
 
-        // contains all tile objects
+        /// <summary>
+        /// Contains all tile objects.
+        /// </summary>
         public TileBase[] Tiles { get; private set; }
 
         // Starting position for the player
         public Point PlayerStartPosition { get; private set; }
+
+        readonly int _level;
 
         #endregion
 
         // constructor
         public Map(int level) : this(defaultSize + level * sizeModifier, defaultSize + level * sizeModifier)
         {
+            _level = level;
+
             // keep trying to generate a map until one valid is made
-            while (!Generate(maxRooms + level * maxRoomsModifier, minRoomSize, maxRoomSize))
+            while (true)
             {
-                FailedAttemptsAtGeneratingMap++;
-                noOfChecksForAllRoomReachability = 0;
-                if (FailedAttemptsAtGeneratingMap > 10)
+                try
                 {
-                    throw new OverflowException("Too many failed attempts at generating a map.");
+                    Generate(maxRooms + level * maxRoomsModifier, minRoomSize, maxRoomSize);
+                    break;
+                }
+                catch (RoomGenerationException)
+                {
+                    _failedAttemptsMapGeneration++;
+                    _failedAttemptsRoomGeneration++;
+                }
+                catch (RoadGenerationException)
+                {
+                    _failedAttemptsMapGeneration++;
+                    _failedAttemptsRoadGeneration++;
+                }
+
+                if (_failedAttemptsMapGeneration > maxAttemptsMapGeneration)
+                {
+                    throw new MapGenerationException(
+                        _failedAttemptsRoomGeneration,
+                        _failedAttemptsRoadGeneration,
+                        _failedAttemptsMapGeneration
+                    );
                 }
             }
         }
@@ -77,8 +110,17 @@ namespace NumeralDash.World
             PlayerStartPosition = (width / 2, height / 2);
         }
 
-        // Checks it the point p is outside the bounds of the map
+        /// <summary>
+        /// Checks it the point p is outside the bounds of the map.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
         bool PointIsOutOfBounds(Point p) => p.X < 0 || p.Y < 0 || p.X >= Width || p.Y >= Height;
+
+        /// <summary>
+        /// How many numbers to generate for this map (used by collection rules).
+        /// </summary>
+        public int NumberCount => Convert.ToInt32(Rooms.Count * numbersPerRoom);
 
 
         #region Room Management
@@ -138,19 +180,18 @@ namespace NumeralDash.World
 
 
         #region Map Generator
-        public bool Generate(int maxRooms, int minRoomSize, int maxRoomSize)
+        public void Generate(int maxRooms, int minRoomSize, int maxRoomSize)
         {
-            int attemptCounter = 0, maxAttempts = maxRooms * 50;
-
             // create rooms on the map
-            while (_rooms.Count < maxRooms && attemptCounter++ < maxAttempts)
+            int totalRoomPositionAttemptCounter = 0;
+            while (_rooms.Count < maxRooms)
             {
                 // generate a room
                 Room newRoom = new(minRoomSize, maxRoomSize);
 
                 // try to find a valid position for the room
-                int attemptCounter2 = 0;
-                while (attemptCounter2++ < maxAttempts)
+                int roomPositionAttemptCounter = 0;
+                while (roomPositionAttemptCounter++ < maxRoomPositionAttempts + generationAttemptsPerLevel * _level)
                 {
                     newRoom.SetRandomPosition(Width, Height);
 
@@ -162,12 +203,19 @@ namespace NumeralDash.World
                         CreateFloors(newRoom);
                         break;
                     }
-                } 
+                    else
+                    {
+                        if (totalRoomPositionAttemptCounter++ > maxRoomGenerationAttempts + generationAttemptsPerLevel * _level)
+                        {
+                            throw new RoomGenerationException();
+                        }
+                    }
+                }
             }
 
             // attempt to connect all the the rooms
-            attemptCounter = 0;
-            while (!AllRoomsAreReachable() && attemptCounter++ < maxAttempts)
+            int totalRoadGenerationAttemptCounter = 0;
+            while (!AllRoomsAreReachable())
             {
                 foreach (var room in _rooms)
                 {
@@ -177,23 +225,25 @@ namespace NumeralDash.World
                         CreateRandomRoad(room);
                     }
                 }
-            }
 
-            if (!AllRoomsAreConnected) return false;
+                if (totalRoadGenerationAttemptCounter++ > maxRoadGenerationAttempts + generationAttemptsPerLevel * _level)
+                {
+                    throw new RoadGenerationException();
+                }
+            }
 
             // set the start position for the player
             PlayerStartPosition = _rooms[0].Area.Center;
-
-            // success, map has been generated, all rooms are reachable
-            return true;
         }
 
+        /// <summary>
+        /// Checks if all rooms are connected and reachable by a player.
+        /// </summary>
+        /// <returns></returns>
         bool AllRoomsAreReachable()
         {
             // first test if all the rooms have at least one road
             if (_rooms.Any(room => room.HasNoRoads())) return false;
-
-            noOfChecksForAllRoomReachability++;
 
             // get the first room as a reference point
             var firstRoom = _rooms[0];
@@ -214,11 +264,13 @@ namespace NumeralDash.World
             }
 
             // the first room has not found a single other it cannot reach
-            AllRoomsAreConnected = true;
             return true;
         }
 
-        // Carve out a rectangular floor using the TileFloors class
+        /// <summary>
+        /// Carves out a rectangular room covered with TileFloors.
+        /// </summary>
+        /// <param name="room"></param>
         void CreateFloors(Room room)
         {
             //Carve out a rectangle of floors in the tile array
@@ -234,6 +286,11 @@ namespace NumeralDash.World
             }
         }
 
+        /// <summary>
+        /// Carves out a road covered with TileFloors.
+        /// </summary>
+        /// <param name="roadPoints"></param>
+        /// <param name="road"></param>
         void CreateFloors(List<Point> roadPoints, Road road)
         {
             foreach (var point in roadPoints)
@@ -246,7 +303,11 @@ namespace NumeralDash.World
             }
         }
 
-        // creates a random road
+        /// <summary>
+        /// Creates a random road.
+        /// </summary>
+        /// <param name="room">Start point for the road.</param>
+        /// <returns></returns>
         public bool CreateRandomRoad(Room room)
         {
             int index = 0, legs = 1, legLength = 0, maxLegLength = Road.GetRandomLegLength();
@@ -379,4 +440,26 @@ namespace NumeralDash.World
 
         #endregion
     }
+
+    class RoomGenerationException : OverflowException
+    {
+
+    }
+
+    class RoadGenerationException : OverflowException
+    {
+
+    }
+
+    class MapGenerationException : OverflowException
+    {
+        public AttemptCounters FailedAttempts;
+
+        public MapGenerationException(int roomGenerationAttempts, int roadGenerationAttempts, int mapGenerationAttempts) : base()
+        {
+            FailedAttempts = new(roomGenerationAttempts, roadGenerationAttempts, mapGenerationAttempts);
+        }
+    }
+
+    record AttemptCounters(int RoomGeneration, int RoadGeneration, int MapGeneration);
 }

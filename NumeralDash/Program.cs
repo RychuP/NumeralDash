@@ -13,7 +13,7 @@ namespace NumeralDash
         /// <summary>
         /// Used to generate colors that are of a certain, minimum brightness.
         /// </summary>
-        public const float MinimumColorBrightness = 0.4f;
+        public const float MinimumColorBrightness = 0.5f;
 
         static void Main(string[] args)
         {

@@ -19,7 +19,7 @@ namespace NumeralDash.Consoles
         /// <summary>
         /// Items to be displayed in the window.
         /// </summary>
-        Row[] _rows = new Row[]
+        readonly Row[] _rows = new Row[]
         {
             new Row(Item.ShortNames.Rule),
             new Row(Item.ShortNames.Next),

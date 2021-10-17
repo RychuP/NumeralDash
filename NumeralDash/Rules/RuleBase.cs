@@ -38,9 +38,9 @@ namespace NumeralDash.Rules
 
         public RuleBase(int count)
         {
-            if (count < 1 || count > 100)
+            if (count < 1)
             {
-                throw new ArgumentException("Amount of the numbers to generate is outside of the limits allowed.");
+                throw new ArgumentException("Minimum amount of numbers to generate is 1.");
             }
 
             NumberCount = count;

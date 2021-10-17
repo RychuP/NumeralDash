@@ -2,6 +2,7 @@
 using NumeralDash.Rules;
 using SadConsole;
 using SadRogue.Primitives;
+using NumeralDash.World;
 
 namespace NumeralDash.Consoles
 {
@@ -36,9 +37,14 @@ namespace NumeralDash.Consoles
             Display(txt);
         }
 
-        void OnMapFailedToGenerate(string txt)
+        void OnMapFailedToGenerate(AttemptCounters failedAttempts)
         {
-            Display(txt);
+            Display(new string[] { 
+                "Map failed to generate. Please restart the game.",
+                $"RoomGenerationAttempts: {failedAttempts.RoomGeneration}, " +
+                    $"RoadGenerationAttempts: {failedAttempts.RoadGeneration}, " +
+                    $"MapGenerationAttempts: {failedAttempts.MapGeneration}"
+            });
         }
 
         void OnLevelChanged(IRule rule, int level, string[] txt)
