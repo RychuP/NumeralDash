@@ -21,6 +21,6 @@ The game requires .NET 5 in order to play. You will be prompted to download it i
 
 SadConsole v9.1.1
 
-## Screenshots
+## Screenshots:
 
 ![screenshot](/screenshot.png)
