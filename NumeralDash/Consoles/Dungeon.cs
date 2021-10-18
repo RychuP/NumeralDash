@@ -8,14 +8,22 @@ using System.Collections.Generic;
 using System.Linq;
 using NumeralDash.Rules;
 using SadConsole.Input;
+using System.Timers;
 
 namespace NumeralDash.Consoles
 {
     class Dungeon : SadConsole.Console
     {
+        // settings
+        const int levelTime = 5 * 60 + 0,
+         timeChangePerLevel = 0 * 60 + 10;
+
         #region Storage
 
         // fields
+        readonly Timer _timer = new(1000) { AutoReset = true };
+        TimeSpan _time;
+        readonly TimeSpan _oneSecond = new TimeSpan(0, 0, 1); 
         readonly Map _blankMap;
         Renderer _entityManager;
         int _level = 0;
@@ -32,6 +40,7 @@ namespace NumeralDash.Consoles
         {
             _blankMap = blankMap;
             _map = blankMap;
+            _timer.Elapsed += OnTimeElapsed;
             Font = Game.Instance.Fonts["C64"];
 
             // entity manager (temporary -> will be removed in ChangeMap)
@@ -61,6 +70,7 @@ namespace NumeralDash.Consoles
                 ChangeMap();
                 ChangeRule();
                 SpawnEntities();
+                StartTimer();
                 OnLevelChanged();
             }
             catch (MapGenerationException e)
@@ -71,6 +81,15 @@ namespace NumeralDash.Consoles
                 OnMapFailedToGenerate(e.FailedAttempts);
             }
             
+        }
+
+        void StartTimer()
+        {
+            int totalTime = levelTime - _level * timeChangePerLevel;
+            int minutes = Convert.ToInt32(totalTime / 60);
+            int seconds = totalTime - minutes * 60;
+            _time = new(0, minutes, seconds);
+            _timer.Start();
         }
 
         void ChangeMap()
@@ -187,6 +206,7 @@ namespace NumeralDash.Consoles
                         // check if the level is completed
                         else if (e is Exit && Rule.NextNumber == Number.Finished)
                         {
+                            _timer.Stop();
                             ChangeLevel();
                         }
                     }
@@ -260,6 +280,9 @@ namespace NumeralDash.Consoles
             };
 
             LevelChanged?.Invoke(Rule, _level, mapGenerationInfo);
+
+            // invoke this as well to show the timer as soon as the new level is displayed (otherwise there is a 1 sec delay)
+            TimeElapsed?.Invoke(_time);
         }
 
         public event Action<IRule, int, string[]>? LevelChanged;
@@ -270,6 +293,20 @@ namespace NumeralDash.Consoles
         }
 
         public event Action<AttemptCounters>? MapFailedToGenerate;
+
+        void OnTimeElapsed(object source, ElapsedEventArgs e)
+        {
+            _time -= _oneSecond;
+
+            if (_time == TimeSpan.Zero)
+            {
+                _timer.Stop();
+            }
+
+            TimeElapsed?.Invoke(_time);
+        }
+
+        public event Action<TimeSpan>? TimeElapsed;
 
         #endregion
     }

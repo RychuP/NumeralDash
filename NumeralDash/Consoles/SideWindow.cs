@@ -45,7 +45,7 @@ namespace NumeralDash.Consoles
             dungeon.LevelChanged += OnLevelChanged;
             dungeon.Player.InventoryChanged += OnInventoryChanged;
             dungeon.Player.DepositMade += OnDepositMade;
-            
+            dungeon.TimeElapsed += OnTimeElapsed;
         }
 
         public void PrintItemContent(Item.ShortNames itemName, string s, Color c)
@@ -114,6 +114,11 @@ namespace NumeralDash.Consoles
             ClearItems();
             PrintItemContent(Item.ShortNames.Level, level.ToString(), DefaultForeground);
             OnRuleChanged(rule);
+        }
+
+        void OnTimeElapsed(TimeSpan t)
+        {
+            PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.SkyBlue);
         }
 
         #endregion
