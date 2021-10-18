@@ -6,6 +6,10 @@
     <ApplicationIcon />
     <StartupObject>NumeralDash.Program</StartupObject>
 	<Nullable>enable</Nullable>
+	<Version>0.5.0</Version>
+	<Authors>Ryszard Pyka</Authors>
+	<Description>A small game testing your spacial memory. Collect all numbers scattered in a dungeon and leave before the time runs out.</Description>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +23,10 @@
     </None>
     <None Update="Fonts\Yayo_c64.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 

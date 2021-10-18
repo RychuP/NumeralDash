@@ -40,7 +40,7 @@ namespace NumeralDash
 
         static void Init()
         {
-            //Game.Instance.ToggleFullScreen();
+            Game.Instance.ToggleFullScreen();
             Game.Instance.LoadFont(@"Fonts/C64.font");
             
             var gm = new GameManager(Width, Height);
