@@ -8,14 +8,14 @@ Current mechanic:
 
 Arrow buttons to move, F5 to switch full screen, Enter to restart the game (on game over).
 
-## Framework:
-
-The game requires .NET 5 in order to play. You will be prompted to download it if not owned already.
-
 ## To be implemented:
 1. Menu system.
 2. Difficulty levels.
 3. Quick move with a shift button modifier.
+
+## Framework:
+
+The game requires .NET 5 in order to play. You will be prompted to download it if not owned already.
 
 ## Game engine:
 
