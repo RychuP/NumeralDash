@@ -11,18 +11,12 @@ namespace NumeralDash.Entities
     {
         public bool CollidesWith(Point p);
 
-        public bool CollidesWith(ICollidable c);
+        public bool IsCloseTo(ICollidable c);
 
-        public Point Coord { set; }
+        public Point Coord { get;  set; }
 
         public Point[] Coords { get; }
 
         public int Size { get; }
-
-        /// <summary>
-        /// Returns the position and all the points directly around it.
-        /// </summary>
-        /// <returns></returns>
-        public Point[] GetExpandedArea();
     }
 }

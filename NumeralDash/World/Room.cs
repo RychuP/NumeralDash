@@ -251,13 +251,15 @@ namespace NumeralDash.World
         /// <param name="e">The new entity.</param>
         /// <param name="PlayerPosition">Prevents spawning entities too close to the player.</param>
         /// <returns>True if operation was successful.</returns>
-        public bool AddCollidable(ICollidable c, Point PlayerPosition)
+        public bool AddCollidable(ICollidable c, Player p)
         {
+            int attemptCounter = 0, maxAttempts = 50;
             if (!ReachedEntityLimit())
             {
                 // get a random position for the entity in the room
                 do
                 {
+                    if (attemptCounter++ > maxAttempts) return false;
                     c.Coord = GetRandomPosition();
                 }
                 while (
@@ -265,13 +267,13 @@ namespace NumeralDash.World
                     Area.PerimeterPositions().Any(p => c.CollidesWith(p)) ||
 
                     // check if the position is not on the same row as any of the other entities in the room
-                    _collidables.Any(e => e.Coords[0].Y == c.Coords[0].Y) ||
+                    _collidables.Any(e => e.Coord.Y == c.Coord.Y) ||
 
                     // check if none of the other entities in the room would become a direct neighbour of the new entity
-                    _collidables.Any(e => e.Coords[0].GetDirectionPoints().Contains(c.Coords[0])) ||
+                    _collidables.Any(e => e.IsCloseTo(c)) ||
 
                     // check if the number will not spawn too close to the player position
-                    PlayerPosition.GetDirectionPoints().Any(p => c.CollidesWith(p))
+                    p.IsCloseTo(c)
                 );
 
                 // add the number to the room

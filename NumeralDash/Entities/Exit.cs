@@ -19,12 +19,13 @@ namespace NumeralDash.Entities
 
         public bool CollidesWith(Point p) => Position == p;
 
-        public bool CollidesWith(ICollidable c) => c.Coords.Any(p => p == Position);
+        public bool IsCloseTo(ICollidable c) => Position.GetDirectionPoints().Any(p => c.CollidesWith(p));
 
         public int Size => 1;
 
         public Point Coord
         {
+            get => Position;
             set
             {
                 Position = value;
@@ -33,7 +34,5 @@ namespace NumeralDash.Entities
         }
 
         public Point[] Coords => _coords;
-
-        public Point[] GetExpandedArea() => Position.GetDirectionPoints();
     }
 }

@@ -85,7 +85,7 @@ namespace NumeralDash.Consoles
 
         void StartTimer()
         {
-            int totalTime = levelTime - _level * timeChangePerLevel;
+            int totalTime = levelTime - (_level - 1) * timeChangePerLevel;
             int minutes = Convert.ToInt32(totalTime / 60);
             int seconds = totalTime - minutes * 60;
             _time = new(0, minutes, seconds);
@@ -151,7 +151,7 @@ namespace NumeralDash.Consoles
             if (_map.Rooms.Any(room => !room.ReachedEntityLimit()))
             {
                 do room = _map.GetRandomRoom();
-                while (!room.AddCollidable(c, _map.PlayerStartPosition));
+                while (!room.AddCollidable(c, Player));
             }
             else
             {

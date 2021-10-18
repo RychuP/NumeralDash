@@ -15,7 +15,6 @@ namespace NumeralDash.Entities
 
         readonly int _value;
         readonly Point[] _coords;
-        readonly Point[] _expandedArea;
 
         /// <summary>
         /// Additional one digit numbers that together will form a representation of the string value.
@@ -32,9 +31,6 @@ namespace NumeralDash.Entities
 
             _value = value;
             _coords = new Point[Size];
-
-            int areaPositions = Size == 1 ? 9 : 9 + (Size - 1) * 3;
-            _expandedArea = new Point[areaPositions];
 
             // make sure the background is not transparent
             Appearance.Background = Appearance.Background.FillAlpha();
@@ -72,14 +68,12 @@ namespace NumeralDash.Entities
 
         public Point Coord
         {
+            get => Position;
             set
             {
                 // set position
                 Position = value;
                 _coords[0] = Position;
-
-                // calculate new area positions
-                var areaPositions = Position.GetDirectionPoints().ToList();
 
                 // set position for the extensions
                 if (Size > 1)
@@ -91,40 +85,11 @@ namespace NumeralDash.Entities
                         _coords[i + 1] = p;
                         Extensions[i].Position = p;
                     }
-
-                    // calculate new area positions for extensions
-                    foreach(var e in Extensions)
-                    {
-                        // get all positions around the point including the point
-                        var tempPositions = e.Position.GetDirectionPoints().ToList();
-
-                        areaPositions.AddRange(tempPositions);
-                    }
-
-                    // remove duplicate border positions
-                    var uniquePoints =
-                        from point in areaPositions
-                        group point by point into Group
-                        select Group.Key;
-
-                    if (uniquePoints.Count() != _expandedArea.Length)
-                    {
-                        throw new IndexOutOfRangeException("Border position counts do not match.");
-                    }
-
-                    // copy area points to the field array
-                    int j = 0;
-                    foreach (var point in uniquePoints)
-                    {
-                        _expandedArea[j++] = point;
-                    }
                 }
             }
         }
 
         public Point[] Coords => _coords;
-
-        public Point[] GetExpandedArea() => _expandedArea.ToArray();
 
         public bool CollidesWith(Point p)
         {
@@ -132,11 +97,11 @@ namespace NumeralDash.Entities
             else return Position == p;
         }
 
-        public bool CollidesWith(ICollidable c)
+        public bool IsCloseTo(ICollidable c)
         {
-            foreach (var point in Coords)
+            foreach (var p in Coords)
             {
-                if (c.Coords.Any(otherPoint => otherPoint == point)) return true;
+                if (p.GetDirectionPoints().Any(p => c.CollidesWith(p))) return true;
             }
             return false;
         }
