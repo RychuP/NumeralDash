@@ -23,7 +23,8 @@ namespace NumeralDash.Consoles
         // fields
         readonly Timer _timer = new(1000) { AutoReset = true };
         TimeSpan _time;
-        readonly TimeSpan _oneSecond = new TimeSpan(0, 0, 1); 
+        readonly TimeSpan _oneSecond = new TimeSpan(0, 0, 1);
+        TimeSpan _totalTimePlayed = TimeSpan.Zero;
         readonly Map _blankMap;
         Renderer _entityManager;
         int _level = 0;
@@ -56,6 +57,13 @@ namespace NumeralDash.Consoles
         }
 
         #region Level Management
+
+        public void Restart()
+        {
+            _totalTimePlayed = TimeSpan.Zero;
+            _level = 0;
+            Start();
+        }
 
         public void Start()
         {
@@ -157,6 +165,12 @@ namespace NumeralDash.Consoles
             {
                 throw new ArgumentException($"Excessive number of entities. No room can accept {c}.");
             }
+        }
+
+        void PrintCenter(int y, string s)
+        {
+            s = s.Align(HorizontalAlignment.Center, Width);
+            this.Print(0, y, s);
         }
 
         /// <summary>
@@ -299,16 +313,36 @@ namespace NumeralDash.Consoles
         void OnTimeElapsed(object source, ElapsedEventArgs e)
         {
             _time -= _oneSecond;
+            _totalTimePlayed += _oneSecond;
 
             if (_time == TimeSpan.Zero)
             {
                 _timer.Stop();
+                OnGameOver();
             }
 
             TimeElapsed?.Invoke(_time);
         }
 
         public event Action<TimeSpan>? TimeElapsed;
+
+        void OnGameOver()
+        {
+            // get new surface
+            Surface = new CellSurface(ViewWidth, ViewHeight);
+
+            // remove prev renderer
+            SadComponents.Remove(_entityManager);
+
+            PrintCenter(10, "Game Over");
+            PrintCenter(13, $"You have reached level {_level}. Well done.");
+            PrintCenter(15, $"Total gameplay time: {_totalTimePlayed}");
+            PrintCenter(19, "Press Enter to try again...");
+
+            GameOver?.Invoke();
+        }
+
+        public event Action? GameOver;
 
         #endregion
     }

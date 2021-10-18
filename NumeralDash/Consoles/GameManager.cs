@@ -21,6 +21,8 @@ namespace NumeralDash.Consoles
         readonly SideWindow _sideWindow;
         readonly MiniMap _miniMap;
 
+        bool _gameOver = false;
+
         public GameManager(int width, int height) : base(width, height)
         {
             _borderGlyph = new ColoredGlyph(Color.Green, DefaultBackground, 177);
@@ -45,6 +47,8 @@ namespace NumeralDash.Consoles
 
             // add a new child and display it
             AddWindow(window, _dungeon);
+
+            _dungeon.GameOver += OnGameOver;
 
             #endregion Dungeon Initialization
 
@@ -109,10 +113,23 @@ namespace NumeralDash.Consoles
                     Game.Instance.ToggleFullScreen();
                     return true;
                 }
-            }
 
-            _dungeon.ProcessKeyboard(keyboard);
+                if (!_gameOver)
+                {
+                    _dungeon.ProcessKeyboard(keyboard);
+                }
+                else if (keyboard.IsKeyPressed(Keys.Enter))
+                {
+                    _dungeon.Restart();
+                    _gameOver = false;
+                }
+            }
             return base.ProcessKeyboard(keyboard);
+        }
+
+        void OnGameOver()
+        {
+            _gameOver = true;
         }
     }
 }

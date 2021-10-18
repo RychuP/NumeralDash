@@ -46,6 +46,7 @@ namespace NumeralDash.Consoles
             dungeon.Player.InventoryChanged += OnInventoryChanged;
             dungeon.Player.DepositMade += OnDepositMade;
             dungeon.TimeElapsed += OnTimeElapsed;
+            dungeon.GameOver += OnGameOver;
         }
 
         public void PrintItemContent(Item.ShortNames itemName, string s, Color c)
@@ -119,6 +120,11 @@ namespace NumeralDash.Consoles
         void OnTimeElapsed(TimeSpan t)
         {
             PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.LightSkyBlue);
+        }
+
+        void OnGameOver()
+        {
+            ClearItems();
         }
 
         #endregion

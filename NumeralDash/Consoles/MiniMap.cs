@@ -24,6 +24,7 @@ namespace NumeralDash.Consoles
             dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
             dungeon.LevelChanged += OnLevelChanged;
             dungeon.PlayerMoved += OnPlayerMoved;
+            dungeon.GameOver += OnGameOver;
         }
 
         void Display(string txt)
@@ -105,6 +106,11 @@ namespace NumeralDash.Consoles
 
             // display view on the mini map
             Display();
+        }
+
+        void OnGameOver()
+        {
+            this.Clear();
         }
     }
 }
