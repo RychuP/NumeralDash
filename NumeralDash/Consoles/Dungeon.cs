@@ -116,6 +116,9 @@ namespace NumeralDash.Consoles
         /// </summary>
         void SpawnEntities()
         {
+            // reposition player to the new start point
+            Player.Position = _map.PlayerStartPosition;
+
             // spawn numbers
             for (int i = 0; i < Rule.Numbers.Length; i++)
             {
@@ -140,9 +143,6 @@ namespace NumeralDash.Consoles
             var exit = new Exit();
             PlaceCollidableInRandomRoom(exit);
             _entityManager.Add(exit);
-
-            // reposition player to the new start point
-            Player.Position = _map.PlayerStartPosition;
         }
 
         void PlaceCollidableInRandomRoom(ICollidable c)

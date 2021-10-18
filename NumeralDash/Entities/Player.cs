@@ -48,7 +48,10 @@ namespace NumeralDash.Entities
             return Position.Translate(direction);
         }
 
-        public bool IsCloseTo(ICollidable c) => Position.GetDirectionPoints().Any(p => c.CollidesWith(p));
+        public bool IsCloseTo(ICollidable c)
+        {
+            return Position == c.Coord || Position.GetDirectionPoints().Any(p => c.CollidesWith(p));
+        }
 
         #endregion
 
