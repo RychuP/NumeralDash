@@ -15,8 +15,6 @@ namespace NumeralDash.Consoles.SideWindowParts
         public static Dictionary<ShortNames, string> LongNames = new()
         {
             {ShortNames.Rule, "Collection Rule"},
-            {ShortNames.Next, "Next Number"},
-            {ShortNames.Level, "Dungeon Level"}
         };
 
         public enum ShortNames

@@ -267,10 +267,11 @@ namespace NumeralDash.Consoles
 
         void OnPlayerMoved()
         {
-            PlayerMoved?.Invoke(_map.GetTileInfo(Player.Position));
+            // PlayerMoved?.Invoke(_map.GetTileInfo(Player.Position));
+            PlayerMoved?.Invoke(View.Position);
         }
 
-        public event Action<string[]>? PlayerMoved;
+        public event Action<Point>? PlayerMoved;
 
         void OnLevelChanged()
         {

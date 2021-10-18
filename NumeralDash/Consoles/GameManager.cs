@@ -8,8 +8,8 @@ namespace NumeralDash.Consoles
 {
     class GameManager : SadConsole.Console
     {
-        const int bottomWindowHeight = 6,
-                  sideWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
+        const int sideWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
+                  sideWindowHeight = 22,
                   twoBorders = 2,
                   oneBorder = 1;
 
@@ -19,7 +19,7 @@ namespace NumeralDash.Consoles
         // windows
         readonly Dungeon _dungeon;
         readonly SideWindow _sideWindow;
-        readonly BottomWindow _bottomWindow;
+        readonly MiniMap _miniMap;
 
         public GameManager(int width, int height) : base(width, height)
         {
@@ -33,7 +33,7 @@ namespace NumeralDash.Consoles
             #region Dungeon Initialization
 
             // calculate dungeon window size (substract oneBorder only because another border is shared with neigbouring windows)
-            Point dungeonWindowSize = (Width - sideWindowWidth - oneBorder, height - bottomWindowHeight - oneBorder);
+            Point dungeonWindowSize = (width - sideWindowWidth - oneBorder, height);
             Point dungeonPosition = (0, 0);
             Rectangle window = new(dungeonPosition.X, dungeonPosition.Y, dungeonWindowSize.X, dungeonWindowSize.Y);
 
@@ -46,43 +46,43 @@ namespace NumeralDash.Consoles
             // add a new child and display it
             AddWindow(window, _dungeon);
 
-            #endregion Dungeon
+            #endregion Dungeon Initialization
 
             #region Side Window Initialization
 
-            // calculate inventory window size
-            Point inventoryWindowSize = (sideWindowWidth + twoBorders, dungeonWindowSize.Y);
-            Point inventoryPosition = (dungeonWindowSize.X - oneBorder, 0);
-            window = new(inventoryPosition.X, inventoryPosition.Y, inventoryWindowSize.X, inventoryWindowSize.Y);
+            // calculate side window size
+            Point sideWindowSize = (sideWindowWidth + twoBorders, sideWindowHeight);
+            Point sideWindowPosition = (dungeonWindowSize.X - oneBorder, 0);
+            window = new(sideWindowPosition.X, sideWindowPosition.Y, sideWindowSize.X, sideWindowSize.Y);
 
-            // create an inventory (substractions and additions make allowance for the border)
-            _sideWindow = new(sideWindowWidth, inventoryWindowSize.Y - twoBorders, _dungeon)
+            // create a side window (substractions and additions make allowance for the border)
+            _sideWindow = new(sideWindowWidth, sideWindowSize.Y - twoBorders, _dungeon)
             {
-                Position = (inventoryPosition.X + oneBorder, inventoryPosition.Y + oneBorder)
+                Position = (sideWindowPosition.X + oneBorder, sideWindowPosition.Y + oneBorder)
             };
 
             // add a new child and display it
             AddWindow(window, _sideWindow);
 
-            #endregion Inventory
+            #endregion Side Window Initialization
 
-            #region Bottom Window Initialization
+            #region Mini Map Initialization
 
-            // calculate status window size
-            Point statusWindowSize = (Width, bottomWindowHeight + twoBorders);
-            Point statusPosition = (0, dungeonWindowSize.Y - oneBorder);
-            window = new(statusPosition.X, statusPosition.Y, statusWindowSize.X, statusWindowSize.Y);
+            // calculate bottom window size
+            Point miniMapSize = (sideWindowWidth + twoBorders, height - sideWindowHeight + oneBorder);
+            Point miniMapPosition = (dungeonWindowSize.X - oneBorder, sideWindowHeight - oneBorder);
+            window = new(miniMapPosition.X, miniMapPosition.Y, miniMapSize.X, miniMapSize.Y);
 
             // create a status console (substractions and additions make allowance for the border)
-            _bottomWindow = new(statusWindowSize.X - twoBorders, bottomWindowHeight, _dungeon)
+            _miniMap = new(miniMapSize.X - twoBorders, miniMapSize.Y, _dungeon)
             {
-                Position = (statusPosition.X + oneBorder, statusPosition.Y + oneBorder)
+                Position = (miniMapPosition.X + oneBorder, miniMapPosition.Y + oneBorder)
             };
 
             // add a new child and display it
-            AddWindow(window, _bottomWindow);
+            AddWindow(window, _miniMap);
 
-            #endregion Status
+            #endregion Mini Map Initialization
 
             // connect borders
             this.ConnectLines();
