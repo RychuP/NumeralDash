@@ -6,7 +6,7 @@ namespace NumeralDash.Rules
 {
     class RandomOrder : RuleBase, IRule
     {
-        public string Description => "Random order.";
+        public string Description => "Random order";
 
         public RandomOrder(int count) : base(count)
         {
@@ -24,7 +24,7 @@ namespace NumeralDash.Rules
             SetNextNumber();
         }
 
-        public void SetNextNumber()
+        public override void SetNextNumber()
         {
             if (RemainingNumbers.Count > 1)
             {

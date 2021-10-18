@@ -165,10 +165,11 @@ namespace NumeralDash.Consoles
         void ChangeRule()
         {
             // select a rule for number collections
-            var ruleNumber = Program.GetRandomIndex(2 /* number of rules in the switch expression */);
+            var ruleNumber = Program.GetRandomIndex(3 /* number of rules in the switch expression */);
             Rule = ruleNumber switch
             {
                 0 => new SequentialOrder(_map.NumberCount),
+                1 => new ReverseOrder(_map.NumberCount),
                 _ => new RandomOrder(_map.NumberCount)
             };
         }
@@ -268,10 +269,10 @@ namespace NumeralDash.Consoles
         void OnPlayerMoved()
         {
             // PlayerMoved?.Invoke(_map.GetTileInfo(Player.Position));
-            PlayerMoved?.Invoke(View.Position);
+            PlayerMoved?.Invoke();
         }
 
-        public event Action<Point>? PlayerMoved;
+        public event Action? PlayerMoved;
 
         void OnLevelChanged()
         {

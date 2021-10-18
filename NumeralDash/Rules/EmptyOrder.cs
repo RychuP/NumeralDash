@@ -12,7 +12,5 @@ namespace NumeralDash.Rules
         public string Description => "Empty order.";
 
         public EmptyOrder() : base(10) { }
-
-        public void SetNextNumber() { }
     }
 }

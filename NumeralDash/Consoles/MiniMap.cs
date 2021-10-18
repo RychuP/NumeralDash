@@ -13,9 +13,9 @@ namespace NumeralDash.Consoles
             verticalBorder = 1;
 
         // fields
-        ColoredGlyph _viewCell = new(Color.YellowGreen, Color.Transparent, 219);
+        readonly ColoredGlyph _viewCell = new(Color.YellowGreen, Color.Transparent, 219);
         Point _lastLocalViewPosition = new();
-        Dungeon _dungeon;
+        readonly Dungeon _dungeon;
         int _viewWidth, _viewHeight;
 
         public MiniMap(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
@@ -39,7 +39,7 @@ namespace NumeralDash.Consoles
             int length = txt.Length < Height ? txt.Length : Height;
             for (int i = 0; i < length; i++)
             {
-                this.Print(2, i, txt[i]);
+                this.Print(horizontalBorder, verticalBorder + i, txt[i]);
             }
         }
 
@@ -71,7 +71,7 @@ namespace NumeralDash.Consoles
             );
         }
 
-        void OnPlayerMoved(Point dungeonViewPosition)
+        void OnPlayerMoved()
         {
             Point newViewPos = GetNewViewPosition();
             if (_lastLocalViewPosition != newViewPos)

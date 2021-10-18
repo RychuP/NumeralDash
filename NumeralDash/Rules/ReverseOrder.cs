@@ -1,18 +1,19 @@
-﻿using NumeralDash.Entities;
+﻿using System.Linq;
+using NumeralDash.Entities;
 using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class SequentialOrder : RuleBase, IRule
+    class ReverseOrder : RuleBase, IRule
     {
-        public string Description => "Sequential order";
+        public string Description => "Reverse order";
 
-        public SequentialOrder(int count) : base(count)
+        public ReverseOrder(int count) : base(count)
         {
-            Color = Color.Yellow;
+            Color = Color.Turquoise;
 
             // populate remaining numbers
-            for (int i = 1; i <= NumberCount; i++)
+            for (int i = NumberCount; i >= 1; i--)
             {
                 var n = new Number(i);
                 RemainingNumbers.Add(n);

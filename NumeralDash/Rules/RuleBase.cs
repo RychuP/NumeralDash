@@ -48,6 +48,21 @@ namespace NumeralDash.Rules
             Numbers = new Number[NumberCount];
         }
 
+        public virtual void SetNextNumber()
+        {
+            if (RemainingNumbers.Count >= 1)
+            {
+                NextNumber = RemainingNumbers[0];
+                RemainingNumbers.RemoveAt(0);
+                OnNextNumberChanged(RemainingNumbers.Count + 1);
+            }
+            else
+            {
+                NextNumber = Number.Finished;
+                OnNextNumberChanged(0);
+            }
+        }
+
         #region Events
 
         protected void OnNextNumberChanged(int numbersRemaining)
