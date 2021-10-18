@@ -15,7 +15,7 @@ Arrow buttons to move, F5 to switch full screen, Enter to restart the game (on g
 
 ## Framework:
 
-The game requires .NET 5 in order to play. You will be prompted to download it if not owned already.
+The game requires .NET 5 in order to play. You will be prompted to download it if not installed already.
 
 ## Game engine:
 
