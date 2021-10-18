@@ -10,7 +10,7 @@ namespace NumeralDash.Rules
 
         public RandomOrder(int count) : base(count)
         {
-            Color = Color.Green;
+            Color = Color.LightSalmon;
 
             // generate numbers
             for (int i = 1; i <= NumberCount; i++)

@@ -45,7 +45,7 @@ namespace NumeralDash.Entities
             // set color for special numbers
             else
             {
-                Appearance.Foreground = (_value == 0) ? Color.Red : Color.Green;
+                Appearance.Foreground = (_value == 0) ? Color.Red : Color.DarkSeaGreen;
             }
 
             // check if the value occupies more than one cell and if so, create extensions

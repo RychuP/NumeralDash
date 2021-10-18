@@ -118,7 +118,7 @@ namespace NumeralDash.Consoles
 
         void OnTimeElapsed(TimeSpan t)
         {
-            PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.SkyBlue);
+            PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.LightSkyBlue);
         }
 
         #endregion
