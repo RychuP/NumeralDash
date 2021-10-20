@@ -1,11 +1,15 @@
 ﻿using System;
 using SadConsole;
+using NumeralDash.Other;
 using SadRogue.Primitives;
 using SadConsole.Input;
 using NumeralDash.World;
 
 namespace NumeralDash.Consoles
 {
+    /// <summary>
+    /// Inititates the three main consoles and manages the game in general terms (start screen, full screen toggle, etc).
+    /// </summary>
     class GameManager : SadConsole.Console
     {
         const int sideWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
@@ -16,12 +20,17 @@ namespace NumeralDash.Consoles
         // border style around windows
         readonly ColoredGlyph _borderGlyph;
 
-        // windows
+        // main consoles
         readonly Dungeon _dungeon;
         readonly SideWindow _sideWindow;
         readonly MiniMap _miniMap;
 
-        bool _gameOver = false;
+        // draw font area
+        ScreenSurface _startScreen;
+        TheDrawFont _drawFont;
+
+        bool _gameOver = false,
+             _startScreenShown = false;
 
         public GameManager(int width, int height) : base(width, height)
         {
@@ -45,8 +54,11 @@ namespace NumeralDash.Consoles
                 Position = (dungeonPosition.X + oneBorder, dungeonPosition.Y + oneBorder)
             };
 
-            // add a new child and display it
+            // do this just to draw the border
             AddWindow(window, _dungeon);
+
+            // remove it to make space for the start screen
+            Children.Remove(_dungeon);
 
             _dungeon.GameOver += OnGameOver;
 
@@ -88,11 +100,37 @@ namespace NumeralDash.Consoles
 
             #endregion Mini Map Initialization
 
+            #region Start Screen Initialization
+
+            // create start screen
+            _startScreen = new(Width - sideWindowWidth, 50) { Position = (0, 0) };
+
+            // load the draw font
+            var fontEnumerator = TheDrawFont.ReadFonts(@"Fonts/DESTRUCX.TDF").GetEnumerator();
+            fontEnumerator.MoveNext();
+            _drawFont = fontEnumerator.Current;
+
+            Children.Add(_startScreen);
+
+            // print the game name
+            _startScreen.Surface.PrintDraw(5, "numeral", _drawFont, HorizontalAlignment.Center);
+            _startScreen.Surface.PrintDraw(12, "dash", _drawFont, HorizontalAlignment.Center);
+
+            // print info
+            PrintCenter(20, "Collect all numbers scattered around the dungeon in the given order");
+            PrintCenter(22, "and leave before the time runs out.");
+            PrintCenter(26, "Controls: Arrow buttons to move, F5 toggle full screen");
+            PrintCenter(28, "Press Enter to start...");
+            
+            #endregion
+
             // connect borders
             this.ConnectLines();
+        }
 
-            // start game
-            _dungeon.Start();
+        void PrintCenter(int y, string text)
+        {
+            _startScreen.Surface.Print(0, y, text.Align(HorizontalAlignment.Center, _startScreen.Surface.Width));
         }
 
         void AddWindow(Rectangle r, SadConsole.Console c)
@@ -114,14 +152,23 @@ namespace NumeralDash.Consoles
                     return true;
                 }
 
-                if (!_gameOver)
-                {
-                    _dungeon.ProcessKeyboard(keyboard);
+                if (!_startScreenShown && keyboard.IsKeyPressed(Keys.Enter)) {
+                    _startScreenShown = true;
+                    Children.Remove(_startScreen);
+                    Children.Add(_dungeon);
+                    _dungeon.Start();
                 }
-                else if (keyboard.IsKeyPressed(Keys.Enter))
+                else
                 {
-                    _dungeon.Restart();
-                    _gameOver = false;
+                    if (!_gameOver)
+                    {
+                        _dungeon.ProcessKeyboard(keyboard);
+                    }
+                    else if (keyboard.IsKeyPressed(Keys.Enter))
+                    {
+                        _dungeon.Restart();
+                        _gameOver = false;
+                    }
                 }
             }
             return base.ProcessKeyboard(keyboard);
