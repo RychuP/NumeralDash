@@ -10,7 +10,7 @@ namespace NumeralDash.Other
         readonly static char spaceCharAlternative = 'a';
 
         /// <summary>
-        /// Prints text using THeDrawFont and horizontal alignment specified. Calculates x coordinate. Truncates string to fit in one line.
+        /// Prints text using TheDrawFont and horizontal alignment specified. Calculates x coordinate. Truncates string to fit in one line.
         /// </summary>
         /// <param name="y">Y coordinate of the surface.</param>
         /// <param name="padding">Amount of regular font characters used as horizontal padding on both sides of the output.</param>
@@ -59,7 +59,7 @@ namespace NumeralDash.Other
         }
 
         /// <summary>
-        /// Prints the text using TheDrawFont.
+        /// Prints text using TheDrawFont.
         /// </summary>
         /// <param name="x">X coordinate of the surface.</param>
         /// <param name="y">Y coordinate of the surface.</param>

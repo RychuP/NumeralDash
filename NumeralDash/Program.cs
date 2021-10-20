@@ -43,7 +43,7 @@ namespace NumeralDash
             Game.Instance.ToggleFullScreen();
             Game.Instance.LoadFont(@"Fonts/C64.font");
             var sc = Game.Instance.StartingConsole;
-            string problem = "There has been a problem with";
+            string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";
 
             try
             {
@@ -51,11 +51,11 @@ namespace NumeralDash
             }
             catch (FontLoadingException e)
             {
-                sc.Print(2, 2, $"{problem} loading the font file {e.Message}");
+                sc.Print(2, 2, $"{problem} loading the font file {e.Message}... {exit}");
             }
             catch
             {
-                sc.Print(2, 2, $"{problem} starting the game...");
+                sc.Print(2, 2, $"{problem} starting the game... {exit}");
             }
         }
 

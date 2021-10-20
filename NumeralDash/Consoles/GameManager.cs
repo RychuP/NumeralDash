@@ -47,7 +47,7 @@ namespace NumeralDash.Consoles
             };
 
             // do this just to draw the border
-            AddWindow(window, _dungeon);
+            AddConsole(window, _dungeon);
 
             // remove it to make space for the start screen
             Children.Remove(_dungeon);
@@ -70,7 +70,7 @@ namespace NumeralDash.Consoles
             };
 
             // add a new child and display it
-            AddWindow(window, _sideWindow);
+            AddConsole(window, _sideWindow);
 
             #endregion Side Window Initialization
 
@@ -88,7 +88,7 @@ namespace NumeralDash.Consoles
             };
 
             // add a new child and display it
-            AddWindow(window, _miniMap);
+            AddConsole(window, _miniMap);
 
             #endregion Mini Map Initialization
 
@@ -96,9 +96,9 @@ namespace NumeralDash.Consoles
 
             // load the draw font
             string fontFileName = "DESTRUCX.TDF";
-            var fontArray = TheDrawFont.ReadFonts(@"Fonts/" + fontFileName).ToArray();
-            if (fontArray is null) throw new FontLoadingException(fontFileName);
-            _drawFont = fontArray[3];
+            var fontEnumerable = TheDrawFont.ReadFonts(@"Fonts/" + fontFileName);
+            if (fontEnumerable is null) throw new FontLoadingException(fontFileName);
+            _drawFont = fontEnumerable.ToArray()[3];
 
             // create screens
             _startScreen = new(Width - sideWindowWidth, Height, _drawFont);
@@ -117,12 +117,12 @@ namespace NumeralDash.Consoles
             IsFocused = true;
         }
 
-        void AddWindow(Rectangle r, SadConsole.Console c)
+        void AddConsole(Rectangle r, SadConsole.Console c)
         {
-            // draw a border around the window
+            // draw a border around the console
             this.DrawBox(r, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThick, _borderGlyph));
 
-            // add the window to the display list
+            // add the console to the display list
             Children.Add(c);
         }
 
