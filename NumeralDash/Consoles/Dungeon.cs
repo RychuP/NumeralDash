@@ -29,6 +29,7 @@ namespace NumeralDash.Consoles
         Renderer _entityManager;
         int _level = 0;
         Map _map;
+        Number? _numberBeingWalkedOver = null;
 
         // public properties
         public Player Player { get; init; }
@@ -205,11 +206,12 @@ namespace NumeralDash.Consoles
                     // look for entities at the player's position
                     if (room.GetCollidableAt(tileCoord) is Entity e)
                     {
-                        if (e is Number n)
+                        if (e is Number n && _numberBeingWalkedOver is null)
                         {
                             room.RemoveNumber(n);
                             Number drop = Player.PickUp(n);
                             room.PlaceNumber(drop, n.Position);
+                            _numberBeingWalkedOver = drop;
                         }
 
                         // check if the level is completed
@@ -219,6 +221,7 @@ namespace NumeralDash.Consoles
                             ChangeLevel();
                         }
                     }
+                    else _numberBeingWalkedOver = null;
                 }
 
                 return true;
@@ -325,7 +328,7 @@ namespace NumeralDash.Consoles
             GameOver?.Invoke(_level, _totalTimePlayed);
         }
 
-        public event Action<int, TimeSpan> GameOver;
+        public event Action<int, TimeSpan>? GameOver;
 
         #endregion
     }

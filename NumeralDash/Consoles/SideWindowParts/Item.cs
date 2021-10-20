@@ -11,8 +11,7 @@ namespace NumeralDash.Consoles.SideWindowParts
 {
     class Item
     {
-        // statics
-        public static Dictionary<ShortNames, string> LongNames = new()
+        static Dictionary<ShortNames, string> LongNames = new()
         {
             {ShortNames.Rule, "Collection Rule"},
         };
