@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using SadConsole;
 using NumeralDash.Other;
 using SadRogue.Primitives;
@@ -18,29 +19,20 @@ namespace NumeralDash.Consoles
                   oneBorder = 1;
 
         // border style around windows
-        readonly ColoredGlyph _borderGlyph;
+        readonly ColoredGlyph _borderGlyph = new(Color.Green, Color.Black, 177);
 
         // main consoles
         readonly Dungeon _dungeon;
         readonly SideWindow _sideWindow;
         readonly MiniMap _miniMap;
 
-        // draw font area
-        ScreenSurface _startScreen;
-        TheDrawFont _drawFont;
-
-        bool _gameOver = false,
-             _startScreenShown = false;
+        // other screens
+        readonly StartScreen _startScreen;
+        readonly GameOverScreen _gameOverScreen;
+        readonly TheDrawFont _drawFont;
 
         public GameManager(int width, int height) : base(width, height)
         {
-            _borderGlyph = new ColoredGlyph(Color.Green, DefaultBackground, 177);
-
-            // replace starting console
-            Game.Instance.Screen = this;
-            Game.Instance.DestroyDefaultStartingConsole();
-            IsFocused = true;
-
             #region Dungeon Initialization
 
             // calculate dungeon window size (substract oneBorder only because another border is shared with neigbouring windows)
@@ -100,37 +92,29 @@ namespace NumeralDash.Consoles
 
             #endregion Mini Map Initialization
 
-            #region Start Screen Initialization
-
-            // create start screen
-            _startScreen = new(Width - sideWindowWidth, 50) { Position = (0, 0) };
+            #region Start & End Screen Initialization
 
             // load the draw font
-            var fontEnumerator = TheDrawFont.ReadFonts(@"Fonts/DESTRUCX.TDF").GetEnumerator();
-            fontEnumerator.MoveNext();
-            _drawFont = fontEnumerator.Current;
+            string fontFileName = "DESTRUCX.TDF";
+            var fontArray = TheDrawFont.ReadFonts(@"Fonts/" + fontFileName).ToArray();
+            if (fontArray is null) throw new FontLoadingException(fontFileName);
+            _drawFont = fontArray[3];
+
+            // create screens
+            _startScreen = new(Width - sideWindowWidth, Height, _drawFont);
+            _gameOverScreen = new(Width - sideWindowWidth, Height, _drawFont);
 
             Children.Add(_startScreen);
-
-            // print the game name
-            _startScreen.Surface.PrintDraw(5, "numeral", _drawFont, HorizontalAlignment.Center);
-            _startScreen.Surface.PrintDraw(12, "dash", _drawFont, HorizontalAlignment.Center);
-
-            // print info
-            PrintCenter(20, "Collect all numbers scattered around the dungeon in the given order");
-            PrintCenter(22, "and leave before the time runs out.");
-            PrintCenter(26, "Controls: Arrow buttons to move, F5 toggle full screen");
-            PrintCenter(28, "Press Enter to start...");
             
             #endregion
 
             // connect borders
             this.ConnectLines();
-        }
 
-        void PrintCenter(int y, string text)
-        {
-            _startScreen.Surface.Print(0, y, text.Align(HorizontalAlignment.Center, _startScreen.Surface.Width));
+            // replace starting console
+            Game.Instance.Screen = this;
+            Game.Instance.DestroyDefaultStartingConsole();
+            IsFocused = true;
         }
 
         void AddWindow(Rectangle r, SadConsole.Console c)
@@ -152,31 +136,40 @@ namespace NumeralDash.Consoles
                     return true;
                 }
 
-                if (!_startScreenShown && keyboard.IsKeyPressed(Keys.Enter)) {
-                    _startScreenShown = true;
+                if (!_startScreen.Finished && keyboard.IsKeyPressed(Keys.Enter)) {
+                    _startScreen.Finished = true;
                     Children.Remove(_startScreen);
                     Children.Add(_dungeon);
                     _dungeon.Start();
                 }
                 else
                 {
-                    if (!_gameOver)
+                    if (!_gameOverScreen.IsShown)
                     {
                         _dungeon.ProcessKeyboard(keyboard);
                     }
                     else if (keyboard.IsKeyPressed(Keys.Enter))
                     {
+                        _gameOverScreen.IsShown = false;
+                        Children.Remove(_gameOverScreen);
+                        Children.Add(_dungeon);
                         _dungeon.Restart();
-                        _gameOver = false;
                     }
                 }
             }
             return true;
         }
 
-        void OnGameOver()
+        void OnGameOver(int level, TimeSpan timePlayed)
         {
-            _gameOver = true;
+            Children.Remove(_dungeon);
+            Children.Add(_gameOverScreen);
+            _gameOverScreen.DisplayStats(level, timePlayed);
         }
+    }
+
+    public class FontLoadingException : Exception
+    {
+        public FontLoadingException(string message) : base(message) { }
     }
 }

@@ -122,7 +122,7 @@ namespace NumeralDash.Consoles
             PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.LightSkyBlue);
         }
 
-        void OnGameOver()
+        void OnGameOver(int level, TimeSpan timePlayed)
         {
             ClearItems();
         }

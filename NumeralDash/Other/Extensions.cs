@@ -70,7 +70,7 @@ namespace NumeralDash.Other
             int xPos = x;
             int yPos = y;
             int tempHeight = 0;
-
+            
             foreach (var item in text)
             {
                 if (f.IsCharacterSupported(item))
@@ -100,6 +100,11 @@ namespace NumeralDash.Other
                         xPos += f.GetCharacter(spaceCharAlternative).Width;
                 }
             }
+        }
+
+        public static void PrintCenter(this ICellSurface c, int y, string text)
+        {
+            c.Print(0, y, text.Align(HorizontalAlignment.Center, c.Width));
         }
     }
 }

@@ -108,7 +108,7 @@ namespace NumeralDash.Consoles
             Display();
         }
 
-        void OnGameOver()
+        void OnGameOver(int level, TimeSpan timePlayed)
         {
             this.Clear();
         }

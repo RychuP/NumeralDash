@@ -167,12 +167,6 @@ namespace NumeralDash.Consoles
             }
         }
 
-        void PrintCenter(int y, string s)
-        {
-            s = s.Align(HorizontalAlignment.Center, Width);
-            this.Print(0, y, s);
-        }
-
         /// <summary>
         /// Selects a new rule for number collections.
         /// </summary>
@@ -328,21 +322,10 @@ namespace NumeralDash.Consoles
 
         void OnGameOver()
         {
-            // get new surface
-            Surface = new CellSurface(ViewWidth, ViewHeight);
-
-            // remove prev renderer
-            SadComponents.Remove(_entityManager);
-
-            PrintCenter(10, "Game Over");
-            PrintCenter(13, $"You have reached level {_level}. Well done.");
-            PrintCenter(15, $"Total gameplay time: {_totalTimePlayed}");
-            PrintCenter(19, "Press Enter to try again...");
-
-            GameOver?.Invoke();
+            GameOver?.Invoke(_level, _totalTimePlayed);
         }
 
-        public event Action? GameOver;
+        public event Action<int, TimeSpan> GameOver;
 
         #endregion
     }
