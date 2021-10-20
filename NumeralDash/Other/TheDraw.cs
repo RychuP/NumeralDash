@@ -7,8 +7,11 @@ using SadRogue.Primitives;
 
 namespace NumeralDash.Other
 {
+    // http://www.roysac.com/thedrawfonts-tdf.html
+
     /// <summary>
-    /// Represents a TheDraw ascii font. http://www.roysac.com/thedrawfonts-tdf.html
+    /// This is a class copied from Thraka's upcoming version of SadConsole.
+    /// Represents a TheDraw ascii font. 
     /// </summary>
     public class TheDrawFont
     {

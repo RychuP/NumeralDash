@@ -7,10 +7,10 @@ namespace NumeralDash.Other
 {
     public static class Extensions
     {
-        static char spaceCharAlternative = 'a';
+        readonly static char spaceCharAlternative = 'a';
 
         /// <summary>
-        /// Prints text using THeDrawFont and horizontal alignment specified. Calculates x coordinate.
+        /// Prints text using THeDrawFont and horizontal alignment specified. Calculates x coordinate. Truncates string to fit in one line.
         /// </summary>
         /// <param name="y">Y coordinate of the surface.</param>
         /// <param name="padding">Amount of regular font characters used as horizontal padding on both sides of the output.</param>

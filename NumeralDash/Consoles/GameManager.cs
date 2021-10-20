@@ -171,7 +171,7 @@ namespace NumeralDash.Consoles
                     }
                 }
             }
-            return base.ProcessKeyboard(keyboard);
+            return true;
         }
 
         void OnGameOver()
