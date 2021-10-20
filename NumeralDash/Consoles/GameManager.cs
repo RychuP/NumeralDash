@@ -5,6 +5,7 @@ using NumeralDash.Other;
 using SadRogue.Primitives;
 using SadConsole.Input;
 using NumeralDash.World;
+using NumeralDash.Consoles.SpecialScreens;
 
 namespace NumeralDash.Consoles
 {
@@ -128,35 +129,42 @@ namespace NumeralDash.Consoles
 
         public override bool ProcessKeyboard(Keyboard keyboard)
         {
-            if (keyboard.HasKeysPressed)
+            // full screen toggle regardless of what is being shown
+            if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.F5))
             {
-                if (keyboard.IsKeyPressed(Keys.F5))
-                {
-                    Game.Instance.ToggleFullScreen();
-                    return true;
-                }
+                Game.Instance.ToggleFullScreen();
+                return true;
+            }
 
-                if (!_startScreen.Finished && keyboard.IsKeyPressed(Keys.Enter)) {
-                    _startScreen.Finished = true;
-                    Children.Remove(_startScreen);
-                    Children.Add(_dungeon);
-                    _dungeon.Start();
-                }
-                else
+            // keyboard handling when special screens are being shown
+            else if (_startScreen.IsBeingShown || _gameOverScreen.IsBeingShown)
+            {
+                if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Enter))
                 {
-                    if (!_gameOverScreen.IsShown)
+                    if (_startScreen.IsBeingShown)
                     {
-                        _dungeon.ProcessKeyboard(keyboard);
+                        _startScreen.IsBeingShown = false;
+                        Children.Remove(_startScreen);
+                        Children.Add(_dungeon);
+                        _dungeon.Start();
                     }
-                    else if (keyboard.IsKeyPressed(Keys.Enter))
+                    else if (_gameOverScreen.IsBeingShown)
                     {
-                        _gameOverScreen.IsShown = false;
+                        _gameOverScreen.IsBeingShown = false;
                         Children.Remove(_gameOverScreen);
                         Children.Add(_dungeon);
                         _dungeon.Restart();
                     }
                 }
             }
+
+            // everything that happens during normal gameplay
+            else if (keyboard.HasKeysDown || keyboard.HasKeysPressed)
+            {
+                _dungeon.ProcessKeyboard(keyboard);
+            }
+
+            // keyboard has been handled
             return true;
         }
 

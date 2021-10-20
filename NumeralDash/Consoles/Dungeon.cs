@@ -187,6 +187,16 @@ namespace NumeralDash.Consoles
 
         #region Player Management
 
+        public bool MovePlayerFast(Direction direction)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Moves player by one tile in the given direction .
+        /// </summary>
+        /// <param name="direction">Direction to go to.</param>
+        /// <returns>True if the move succeeded, otherwise false.</returns>
         public bool MovePlayer(Point direction)
         {
             Point tileCoord = Player.GetNextMove(direction);
@@ -229,9 +239,36 @@ namespace NumeralDash.Consoles
             return false;
         }
 
-        public override bool ProcessKeyboard(Keyboard keyboard)
+        public new void ProcessKeyboard(Keyboard keyboard)
         {
-            if (keyboard.HasKeysPressed)
+            // fast move with a left shift modifier
+            if (keyboard.HasKeysDown && keyboard.IsKeyDown(Keys.LeftShift))
+            {
+                // accept only one direction at a time
+                if (keyboard.IsKeyDown(Keys.Left))
+                {
+                    MovePlayerFast(Direction.Left);
+                }
+                else if (keyboard.IsKeyDown(Keys.Right))
+                {
+                    MovePlayerFast(Direction.Right);
+                }
+                else if (keyboard.IsKeyDown(Keys.Up))
+                {
+                    MovePlayerFast(Direction.Up);
+                }
+                else if (keyboard.IsKeyDown(Keys.Down))
+                {
+                    MovePlayerFast(Direction.Down);
+                }
+            }
+            // stop player
+            else if (keyboard.IsKeyReleased(Keys.LeftShift))
+            {
+
+            }
+            // normal move by one tile
+            else if (keyboard.HasKeysPressed)
             {
                 Point direction = (0, 0);
 
@@ -269,8 +306,6 @@ namespace NumeralDash.Consoles
                     }
                 }
             }
-
-            return base.ProcessKeyboard(keyboard);
         }
 
         #endregion
