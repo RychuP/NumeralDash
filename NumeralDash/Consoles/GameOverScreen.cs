@@ -13,7 +13,6 @@ namespace NumeralDash.Consoles
         {
             _drawFont = drawFont;
 
-            // print the game name
             Surface.PrintDraw(5, "game", _drawFont, HorizontalAlignment.Center);
             Surface.PrintDraw(12, "over", _drawFont, HorizontalAlignment.Center);
             Surface.PrintCenter(26, "Press Enter to try again...");
