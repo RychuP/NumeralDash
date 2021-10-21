@@ -40,7 +40,7 @@ namespace NumeralDash
 
         static void Init()
         {
-            Game.Instance.ToggleFullScreen();
+            //Game.Instance.ToggleFullScreen();
             Game.Instance.LoadFont(@"Fonts/C64.font");
             var sc = Game.Instance.StartingConsole;
             string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";

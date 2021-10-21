@@ -27,7 +27,6 @@ namespace NumeralDash.Consoles
         TimeSpan _time;
         readonly TimeSpan _oneSecond = new TimeSpan(0, 0, 1);
         TimeSpan _totalTimePlayed = TimeSpan.Zero;
-        readonly Map _blankMap;
         Renderer _entityManager;
         int _level = 0;
         Map _map;
@@ -41,10 +40,9 @@ namespace NumeralDash.Consoles
 
         #endregion
 
-        public Dungeon(int viewSizeX, int viewSizeY, Map blankMap) : base(viewSizeX, viewSizeY, blankMap.Width, blankMap.Height, blankMap.Tiles)
+        public Dungeon(int viewSizeX, int viewSizeY) : base(viewSizeX, viewSizeY, Map.DefaultSize, Map.DefaultSize)
         {
-            _blankMap = blankMap;
-            _map = blankMap;
+            _map = new Map();
             _timer.Elapsed += OnTimeElapsed;
             Font = Game.Instance.Fonts["C64"];
 
@@ -58,6 +56,8 @@ namespace NumeralDash.Consoles
             // create a player
             Player = new Player(_map.PlayerStartPosition, this);
             SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = Player });
+
+            IsVisible = false;
         }
 
         #region Level Management
@@ -67,6 +67,11 @@ namespace NumeralDash.Consoles
             _totalTimePlayed = TimeSpan.Zero;
             _level = 0;
             Start();
+        }
+
+        public void Retry()
+        {
+            ChangeLevel();
         }
 
         public void Start()
@@ -89,9 +94,7 @@ namespace NumeralDash.Consoles
             }
             catch (MapGenerationException e)
             {
-                _map = _blankMap;
-                ChangeMap();
-                Player.Position = _map.PlayerStartPosition;
+                IsVisible = false;
                 OnMapFailedToGenerate(e.FailedAttempts);
             }
         }
@@ -359,6 +362,7 @@ namespace NumeralDash.Consoles
             if (_time == TimeSpan.Zero)
             {
                 _timer.Stop();
+                IsVisible = false;
                 OnGameOver();
             }
 

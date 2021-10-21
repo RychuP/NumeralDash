@@ -11,18 +11,18 @@ namespace NumeralDash.World
     class Map
     {
         // settings
-        const int defaultSize = 50,              // map is square -> this is the default length of its sides
-            sizeModifier = 5,                    // by how much the map will grow each level
-            maxRooms = 5,                        // max amount of rooms to be generated on the first level
-            maxRoomsModifier = 2,                // amount of rooms that will be added each level
-            minRoomSize = 5,                     // minimum length of any side of a room
-            maxRoomSize = 12,                    // maximum length of any side of a room
-            maxRoomPositionAttempts = 20,        // max number of failed room position finding per room after which a new room is generated
-            maxRoomGenerationAttempts = 100,     // max number of failed room position finding per map generation after which an exception is thrown
-            maxRoadGenerationAttempts = 100,     // max number of failed road generations for all rooms per map generation after which an exception is thrown
-            generationAttemptsPerLevel = 10,     // this is added to the above 3 maxes and multiplied by _level
-            maxAttemptsMapGeneration = 100,      // how many times this object will try to generate a map with current settings
-            numbersPerRoom = 1;                  // how many numbers per room can this map accept
+        public const int DefaultSize = 50;                    // map is square -> this is the default length of its sides
+               const int SizeModifier = 5,                    // by how much the map will grow each level
+                         MaxRooms = 5,                        // max amount of rooms to be generated on the first level
+                         MaxRoomsModifier = 2,                // amount of rooms that will be added each level
+                         MinRoomSize = 5,                     // minimum length of any side of a room
+                         MaxRoomSize = 12,                    // maximum length of any side of a room
+                         MaxRoomPositionAttempts = 20,        // max number of failed room position finding per room after which a new room is generated
+                         MaxRoomGenerationAttempts = 100,     // max number of failed room position finding per map generation after which an exception is thrown
+                         MaxRoadGenerationAttempts = 100,     // max number of failed road generations for all rooms per map generation after which an exception is thrown
+                         GenerationAttemptsPerLevel = 10,     // this is added to the above 3 maxes and multiplied by _level
+                         NaxAttemptsMapGeneration = 100,      // how many times this object will try to generate a map with current settings
+                         NumbersPerRoom = 1;                  // how many numbers per room can this map accept
 
         #region Storage
 
@@ -59,7 +59,7 @@ namespace NumeralDash.World
         #endregion
 
         // constructor
-        public Map(int level) : this(defaultSize + level * sizeModifier, defaultSize + level * sizeModifier)
+        public Map(int level) : this(DefaultSize + level * SizeModifier, DefaultSize + level * SizeModifier)
         {
             _level = level;
 
@@ -68,7 +68,7 @@ namespace NumeralDash.World
             {
                 try
                 {
-                    Generate(maxRooms + level * maxRoomsModifier, minRoomSize, maxRoomSize);
+                    Generate(MaxRooms + level * MaxRoomsModifier, MinRoomSize, MaxRoomSize);
                     break;
                 }
                 catch (RoomGenerationException)
@@ -82,7 +82,7 @@ namespace NumeralDash.World
                     _failedAttemptsRoadGeneration++;
                 }
 
-                if (_failedAttemptsMapGeneration > maxAttemptsMapGeneration)
+                if (_failedAttemptsMapGeneration > NaxAttemptsMapGeneration)
                 {
                     throw new MapGenerationException(
                         _failedAttemptsRoomGeneration,
@@ -94,7 +94,7 @@ namespace NumeralDash.World
         }
 
         // constructor that creates an unwalkable map full with walls
-        public Map(int width = defaultSize, int height = defaultSize)
+        public Map(int width = DefaultSize, int height = DefaultSize)
         {
             Width = width;
             Height = height;
@@ -120,7 +120,7 @@ namespace NumeralDash.World
         /// <summary>
         /// How many numbers to generate for this map (used by collection rules).
         /// </summary>
-        public int NumberCount => Convert.ToInt32(Rooms.Count * numbersPerRoom);
+        public int NumberCount => Convert.ToInt32(Rooms.Count * NumbersPerRoom);
 
 
         #region Room Management
@@ -191,7 +191,7 @@ namespace NumeralDash.World
 
                 // try to find a valid position for the room
                 int roomPositionAttemptCounter = 0;
-                while (roomPositionAttemptCounter++ < maxRoomPositionAttempts + generationAttemptsPerLevel * _level)
+                while (roomPositionAttemptCounter++ < MaxRoomPositionAttempts + GenerationAttemptsPerLevel * _level)
                 {
                     newRoom.SetRandomPosition(Width, Height);
 
@@ -205,7 +205,7 @@ namespace NumeralDash.World
                     }
                     else
                     {
-                        if (totalRoomPositionAttemptCounter++ > maxRoomGenerationAttempts + generationAttemptsPerLevel * _level)
+                        if (totalRoomPositionAttemptCounter++ > MaxRoomGenerationAttempts + GenerationAttemptsPerLevel * _level)
                         {
                             throw new RoomGenerationException();
                         }
@@ -226,7 +226,7 @@ namespace NumeralDash.World
                     }
                 }
 
-                if (totalRoadGenerationAttemptCounter++ > maxRoadGenerationAttempts + generationAttemptsPerLevel * _level)
+                if (totalRoadGenerationAttemptCounter++ > MaxRoadGenerationAttempts + GenerationAttemptsPerLevel * _level)
                 {
                     throw new RoadGenerationException();
                 }
@@ -441,15 +441,9 @@ namespace NumeralDash.World
         #endregion
     }
 
-    class RoomGenerationException : OverflowException
-    {
+    class RoomGenerationException : OverflowException { }
 
-    }
-
-    class RoadGenerationException : OverflowException
-    {
-
-    }
+    class RoadGenerationException : OverflowException { }
 
     class MapGenerationException : OverflowException
     {

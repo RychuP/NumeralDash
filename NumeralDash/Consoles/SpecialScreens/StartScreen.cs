@@ -1,6 +1,7 @@
 ﻿using System;
 using SadConsole;
 using NumeralDash.Other;
+using SadRogue.Primitives;
 
 namespace NumeralDash.Consoles.SpecialScreens
 {

@@ -6,18 +6,17 @@ using SadRogue.Primitives;
 using SadConsole.Input;
 using NumeralDash.World;
 using NumeralDash.Consoles.SpecialScreens;
+using Console = SadConsole.Console;
 
 namespace NumeralDash.Consoles
 {
     /// <summary>
     /// Inititates the three main consoles and manages the game in general terms (start screen, full screen toggle, etc).
     /// </summary>
-    class GameManager : SadConsole.Console
+    class GameManager : Console
     {
-        const int sideWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
-                  sideWindowHeight = 22,
-                  twoBorders = 2,
-                  oneBorder = 1;
+        const int SideWindowWidth = 27,        // keep this number odd to allow dungeon view fit snugly in the dungeon window
+                  SideWindowHeight = 20;
 
         // border style around windows
         readonly ColoredGlyph _borderGlyph = new(Color.Green, Color.Black, 177);
@@ -30,82 +29,51 @@ namespace NumeralDash.Consoles
         // other screens
         readonly StartScreen _startScreen;
         readonly GameOverScreen _gameOverScreen;
+        readonly ErrorScreen _errorScreen;
         readonly TheDrawFont _drawFont;
 
         public GameManager(int width, int height) : base(width, height)
         {
-            #region Dungeon Initialization
-
-            // calculate dungeon window size (substract oneBorder only because another border is shared with neigbouring windows)
-            Point dungeonWindowSize = (width - sideWindowWidth - oneBorder, height);
-            Point dungeonPosition = (0, 0);
-            Rectangle window = new(dungeonPosition.X, dungeonPosition.Y, dungeonWindowSize.X, dungeonWindowSize.Y);
-
-            // create a dungeon (devide the window width by two to allow for the size of the C64 font 16x16 compared to the default 8x16)
-            _dungeon = new(dungeonWindowSize.X / 2 - twoBorders, dungeonWindowSize.Y - twoBorders, new Map())
-            {
-                Position = (dungeonPosition.X + oneBorder, dungeonPosition.Y + oneBorder)
+            // dungeon
+            Point dSize = (width - SideWindowWidth - 3, height - 2);
+            Point dBorderPos = (0, 0);
+            _dungeon = new(dSize.X / 2 - 2, dSize.Y) {
+                Position = (dBorderPos.X + 1, dBorderPos.Y + 1),
             };
-
-            AddConsole(window, _dungeon);
-            _dungeon.IsVisible = false;
-
             _dungeon.GameOver += OnGameOver;
+            _dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
+            AddChild(_dungeon, dSize, dBorderPos);
 
-            #endregion Dungeon Initialization
-
-            #region Side Window Initialization
-
-            // calculate side window size
-            Point sideWindowSize = (sideWindowWidth + twoBorders, sideWindowHeight);
-            Point sideWindowPosition = (dungeonWindowSize.X - oneBorder, 0);
-            window = new(sideWindowPosition.X, sideWindowPosition.Y, sideWindowSize.X, sideWindowSize.Y);
-
-            // create a side window (substractions and additions make allowance for the border)
-            _sideWindow = new(sideWindowWidth, sideWindowSize.Y - twoBorders, _dungeon)
-            {
-                Position = (sideWindowPosition.X + oneBorder, sideWindowPosition.Y + oneBorder)
+            // side window
+            Point swSize = (SideWindowWidth, SideWindowHeight);
+            Point swBorderPos = (dSize.X + 1, 0);
+            _sideWindow = new(swSize.X, swSize.Y, _dungeon) { 
+                Position = (swBorderPos.X + 1, swBorderPos.Y + 1) 
             };
+            AddChild(_sideWindow, swSize, swBorderPos);
 
-            // add a new child and display it
-            AddConsole(window, _sideWindow);
-
-            #endregion Side Window Initialization
-
-            #region Mini Map Initialization
-
-            // calculate bottom window size
-            Point miniMapSize = (sideWindowWidth + twoBorders, height - sideWindowHeight + oneBorder);
-            Point miniMapPosition = (dungeonWindowSize.X - oneBorder, sideWindowHeight - oneBorder);
-            window = new(miniMapPosition.X, miniMapPosition.Y, miniMapSize.X, miniMapSize.Y);
-
-            // create a status console (substractions and additions make allowance for the border)
-            _miniMap = new(miniMapSize.X - twoBorders, miniMapSize.Y, _dungeon)
-            {
-                Position = (miniMapPosition.X + oneBorder, miniMapPosition.Y + oneBorder)
+            // mini map
+            Point mmSize = (SideWindowWidth, height - SideWindowHeight - 3);
+            Point mmBorderPos = (swBorderPos.X, SideWindowHeight + 1);
+            _miniMap = new(mmSize.X, mmSize.Y, _dungeon) {
+                Position = (mmBorderPos.X + 1, mmBorderPos.Y + 1)
             };
+            AddChild(_miniMap, mmSize, mmBorderPos);
 
-            // add a new child and display it
-            AddConsole(window, _miniMap);
-
-            #endregion Mini Map Initialization
-
-            #region Start & End Screen Initialization
-
-            // load the draw font
+            // draw font
             string fontFileName = "DESTRUCX.TDF";
             var fontEnumerable = TheDrawFont.ReadFonts(@"Fonts/" + fontFileName);
             if (fontEnumerable is null) throw new FontLoadingException(fontFileName);
             _drawFont = fontEnumerable.ToArray()[3];
 
-            // create special screens
-            _startScreen = new(Width - sideWindowWidth, Height, _drawFont);
-            _gameOverScreen = new(Width - sideWindowWidth, Height, _drawFont);
+            // special screens
+            _startScreen = new(Width - SideWindowWidth - 1, Height, _drawFont);
+            _gameOverScreen = new(Width - SideWindowWidth - 1, Height, _drawFont);
+            _errorScreen = new(Width - SideWindowWidth - 1, Height, _drawFont);
             Children.Add(_startScreen);
             Children.Add(_gameOverScreen);
+            Children.Add(_errorScreen);
             
-            #endregion
-
             // connect borders
             this.ConnectLines();
 
@@ -115,12 +83,10 @@ namespace NumeralDash.Consoles
             IsFocused = true;
         }
 
-        void AddConsole(Rectangle r, SadConsole.Console c)
+        void AddChild(Console c, Point consoleSize, Point borderPos)
         {
-            // draw a border around the console
-            this.DrawBox(r, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThick, _borderGlyph));
-
-            // add the console to the display list
+            Rectangle border = new(borderPos.X, borderPos.Y, consoleSize.X + 2, consoleSize.Y + 2);
+            Surface.DrawBox(border, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThick, _borderGlyph));
             Children.Add(c);
         }
 
@@ -134,7 +100,7 @@ namespace NumeralDash.Consoles
             }
 
             // keyboard handling when special screens are being shown
-            else if (_startScreen.IsVisible || _gameOverScreen.IsVisible)
+            else if (_startScreen.IsVisible || _gameOverScreen.IsVisible || _errorScreen.IsVisible)
             {
                 if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Enter))
                 {
@@ -143,6 +109,9 @@ namespace NumeralDash.Consoles
 
                     else if (_gameOverScreen.IsVisible) 
                         ShowDungeon(_gameOverScreen, _dungeon.Restart);
+
+                    else if (_errorScreen.IsVisible)
+                        ShowDungeon(_errorScreen, _dungeon.Retry);
                 }
             }
 
@@ -165,8 +134,12 @@ namespace NumeralDash.Consoles
 
         void OnGameOver(int level, TimeSpan timePlayed)
         {
-            _dungeon.IsVisible = false;
             _gameOverScreen.DisplayStats(level, timePlayed);
+        }
+
+        void OnMapFailedToGenerate(AttemptCounters failedAttempts)
+        {
+            _errorScreen.IsVisible = true;
         }
     }
 

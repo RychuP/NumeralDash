@@ -8,10 +8,6 @@ namespace NumeralDash.Consoles
 {
     class MiniMap : SadConsole.Console
     {
-        // settings
-        const int horizontalBorder = 1,
-            verticalBorder = 1;
-
         // fields
         readonly ColoredGlyph _viewCell = new(Color.YellowGreen, Color.Transparent, 219);
         Point _lastLocalViewPosition = new();
@@ -21,45 +17,25 @@ namespace NumeralDash.Consoles
         public MiniMap(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
         {
             _dungeon = dungeon;
+            Print(Height / 2, "Version 0.6.5");
+
             dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
             dungeon.LevelChanged += OnLevelChanged;
             dungeon.PlayerMoved += OnPlayerMoved;
             dungeon.GameOver += OnGameOver;
         }
 
-        void Display(string txt)
+        void Display()
         {
-            this.Clear();
-            this.Print(horizontalBorder, verticalBorder, txt);
-        }
-
-        void Display(string[] txt)
-        {
-            this.Clear();
-
-            int length = txt.Length < Height ? txt.Length : Height;
-            for (int i = 0; i < length; i++)
-            {
-                this.Print(horizontalBorder, verticalBorder + i, txt[i]);
-            }
-        }
-
-        void Display(Point p)
-        {
-            this.Clear();
+            Surface.Clear();
 
             for (int x = 0; x < _viewWidth; x++)
             {
                 for (int y = 0; y < _viewHeight; y++)
                 {
-                    this.SetCellAppearance(p.X + x, p.Y + y, _viewCell);
+                    this.SetCellAppearance(_lastLocalViewPosition.X + x, _lastLocalViewPosition.Y + y, _viewCell);
                 }
             }
-        }
-
-        void Display()
-        {
-            Display(_lastLocalViewPosition);
         }
 
         Point GetNewViewPosition()
@@ -67,8 +43,8 @@ namespace NumeralDash.Consoles
             float xRatio = (float) _dungeon.ViewPosition.X / _dungeon.Width;
             float yRatio = (float) _dungeon.ViewPosition.Y / _dungeon.Height;
             return new Point(
-                Convert.ToInt32((Width - 0) * xRatio),
-                Convert.ToInt32((Height - 2) * yRatio)
+                Convert.ToInt32(Width * xRatio),
+                Convert.ToInt32(Height * yRatio)
             );
         }
 
@@ -84,22 +60,22 @@ namespace NumeralDash.Consoles
 
         void OnMapFailedToGenerate(AttemptCounters failedAttempts)
         {
-            Display(new string[] { 
-                "Map failed to generate.",
-                "Please restart the game.",
-                $"RoomGenFailures: {failedAttempts.RoomGeneration}",
-                $"RoadGenAttempts: {failedAttempts.RoadGeneration}",
-                $"MapGenAttempts: {failedAttempts.MapGeneration}"
-            });
+            Surface.Clear();
+            int start = (Height - 6) / 2;
+            Print(start, $"Room Gen Failures: {failedAttempts.RoomGeneration}");
+            Print(start + 2, $"Road Gen Attempts: {failedAttempts.RoadGeneration}");
+            Print(start + 4, $"Map Gen Attempts: {failedAttempts.MapGeneration}");
         }
+
+        void Print(int y, string text) => Surface.Print(0, y, text.Align(HorizontalAlignment.Center, Width));
 
         void OnLevelChanged(IRule rule, int level, string[] txt)
         {
             // calculate new view size
             float widthRatio = (float) _dungeon.View.Width / _dungeon.Width;
             float heightRatio = (float) _dungeon.View.Height / _dungeon.Height;
-            _viewWidth = Convert.ToInt32((Width - 0) * widthRatio);
-            _viewHeight = Convert.ToInt32((Height - 2) * heightRatio);
+            _viewWidth = Convert.ToInt32(Width * widthRatio);
+            _viewHeight = Convert.ToInt32(Height * heightRatio);
 
             // calculate new view position
             _lastLocalViewPosition = GetNewViewPosition();
@@ -110,7 +86,7 @@ namespace NumeralDash.Consoles
 
         void OnGameOver(int level, TimeSpan timePlayed)
         {
-            this.Clear();
+            Surface.Clear();
         }
     }
 }

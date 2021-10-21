@@ -8,6 +8,7 @@ using NumeralDash.Rules;
 using SadConsole;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
+using NumeralDash.World;
 
 namespace NumeralDash.Consoles
 {
@@ -47,6 +48,7 @@ namespace NumeralDash.Consoles
             dungeon.Player.DepositMade += OnDepositMade;
             dungeon.TimeElapsed += OnTimeElapsed;
             dungeon.GameOver += OnGameOver;
+            dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
         }
 
         public void PrintItemContent(Item.ShortNames itemName, string s, Color c)
@@ -123,6 +125,11 @@ namespace NumeralDash.Consoles
         }
 
         void OnGameOver(int level, TimeSpan timePlayed)
+        {
+            ClearItems();
+        }
+
+        void OnMapFailedToGenerate(AttemptCounters failedAttempts)
         {
             ClearItems();
         }
