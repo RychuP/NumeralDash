@@ -87,10 +87,14 @@ namespace NumeralDash.Other
                         break;
 
                     var surfaceCharacter = f.GetSurface(item);
-                    surfaceCharacter.Copy(c, xPos, yPos);
 
-                    if (surfaceCharacter.Height > tempHeight)
-                        tempHeight = surfaceCharacter.Height;
+                    if (surfaceCharacter is not null)
+                    {
+                        surfaceCharacter.Copy(c, xPos, yPos);
+
+                        if (surfaceCharacter.Height > tempHeight)
+                            tempHeight = surfaceCharacter.Height;
+                    }
 
                     xPos += charInfo.Width;
                 }
@@ -106,5 +110,7 @@ namespace NumeralDash.Other
         {
             c.Print(0, y, text.Align(HorizontalAlignment.Center, c.Width));
         }
+
+        public static bool IsHorizontal(this Direction d) => d == Direction.Left || d == Direction.Right;
     }
 }

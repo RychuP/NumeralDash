@@ -5,6 +5,7 @@ using SadConsole.Entities;
 using NumeralDash.World;
 using NumeralDash.Entities;
 using System.Collections.Generic;
+using NumeralDash.Other;
 using System.Linq;
 using NumeralDash.Rules;
 using SadConsole.Input;
@@ -15,8 +16,8 @@ namespace NumeralDash.Consoles
     class Dungeon : SadConsole.Console
     {
         // settings
-        const int levelTime = 0 * 60 + 5;
-        //const int levelTime = 5 * 60 + 0;               // time in seconds for the initial level
+        //const int levelTime = 0 * 60 + 5;
+        const int levelTime = 5 * 60 + 0;               // time in seconds for the initial level
         const int timeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
 
         #region Storage
@@ -30,7 +31,6 @@ namespace NumeralDash.Consoles
         Renderer _entityManager;
         int _level = 0;
         Map _map;
-        Number? _numberBeingWalkedOver = null;
         Direction _fastMoveDirection = Direction.None;
 
         // public properties
@@ -77,6 +77,8 @@ namespace NumeralDash.Consoles
 
         void ChangeLevel()
         {
+            PlayerIsMovingFast = false;
+
             try
             {
                 _map = new(_level++);
@@ -93,7 +95,6 @@ namespace NumeralDash.Consoles
                 Player.Position = _map.PlayerStartPosition;
                 OnMapFailedToGenerate(e.FailedAttempts);
             }
-            
         }
 
         void StartTimer()
@@ -191,9 +192,18 @@ namespace NumeralDash.Consoles
 
         #region Player Management
 
-        public bool MovePlayerFast(Direction direction)
+        public void StartFastMove(Direction direction)
         {
-            return false;
+            PlayerIsMovingFast = true;
+            _fastMoveDirection = direction;
+        }
+
+        Point MovePlayer(Direction d)
+        {
+            Point originalPosition = Player.Position;
+            Player.MoveInDirection(d);
+            OnPlayerMoved();
+            return originalPosition;
         }
 
         /// <summary>
@@ -201,31 +211,26 @@ namespace NumeralDash.Consoles
         /// </summary>
         /// <param name="direction">Direction to go to.</param>
         /// <returns>True if the move succeeded, otherwise false.</returns>
-        public bool MovePlayer(Point direction)
+        public bool TryMovePlayer(Direction d)
         {
-            Point tileCoord = Player.GetNextMove(direction);
+            Point tileCoord = Player.GetNextMove(d);
             if (_map.TileIsWalkable(tileCoord, out Room? room))
             {
-                Player.MoveTo(tileCoord);
+                Point playerPrevPosition = MovePlayer(d);
 
                 // check if the tile belongs to a room
                 if (room is not null)
                 {
-                    // mark it as visited if not already
-                    if (!room.Visited)
-                    {
-                        room.Visited = true;
-                    }
+                    if (!room.Visited) room.Visited = true;
 
                     // look for entities at the player's position
                     if (room.GetCollidableAt(tileCoord) is Entity e)
                     {
-                        if (e is Number n && _numberBeingWalkedOver is null)
+                        if (e is Number n && !n.Coords.Contains(playerPrevPosition))
                         {
                             room.RemoveNumber(n);
                             Number drop = Player.PickUp(n);
                             room.PlaceNumber(drop, n.Position);
-                            _numberBeingWalkedOver = drop;
                         }
 
                         // check if the level is completed
@@ -235,11 +240,11 @@ namespace NumeralDash.Consoles
                             ChangeLevel();
                         }
                     }
-                    else _numberBeingWalkedOver = null;
                 }
 
                 return true;
             }
+
             return false;
         }
 
@@ -247,6 +252,38 @@ namespace NumeralDash.Consoles
         {
             base.Update(delta);
 
+            if (PlayerIsMovingFast)
+            {
+                Point tileCoord = Player.GetNextMove(_fastMoveDirection);
+                if (_map.TileIsWalkable(tileCoord, out Room? room))
+                {
+                    // check if the tile belongs to a room
+                    if (room is not null)
+                    {
+                        // mark it as visited if not already
+                        if (!room.Visited)
+                        {
+                            room.Visited = true;
+                        }
+
+                        // look for entities at the player's next position
+                        if (room.GetCollidableAt(tileCoord) is Entity)
+                        {
+                            // make a regular move and stop the fast move
+                            PlayerIsMovingFast = false;
+                            TryMovePlayer(_fastMoveDirection);
+                            return;
+                        }
+                    }
+
+                    // continue the fast move
+                    MovePlayer(_fastMoveDirection);
+                }
+                else
+                {
+                    PlayerIsMovingFast = false;
+                }
+            }
         }
 
         public new void ProcessKeyboard(Keyboard keyboard)
@@ -257,63 +294,48 @@ namespace NumeralDash.Consoles
                 // accept only one direction at a time
                 if (keyboard.IsKeyDown(Keys.Left))
                 {
-                    MovePlayerFast(Direction.Left);
+                    StartFastMove(Direction.Left);
                 }
                 else if (keyboard.IsKeyDown(Keys.Right))
                 {
-                    MovePlayerFast(Direction.Right);
+                    StartFastMove(Direction.Right);
                 }
                 else if (keyboard.IsKeyDown(Keys.Up))
                 {
-                    MovePlayerFast(Direction.Up);
+                    StartFastMove(Direction.Up);
                 }
                 else if (keyboard.IsKeyDown(Keys.Down))
                 {
-                    MovePlayerFast(Direction.Down);
+                    StartFastMove(Direction.Down);
                 }
-            }
-            // stop player
-            else if (keyboard.IsKeyReleased(Keys.LeftShift))
-            {
-
             }
             // normal move by one tile
             else if (keyboard.HasKeysPressed)
             {
-                Point direction = (0, 0);
+                Point delta = (0, 0);
 
                 if (keyboard.IsKeyPressed(Keys.Up))
                 {
-                    direction += Direction.Up;
+                    delta += Direction.Up;
                 }
                 else if (keyboard.IsKeyPressed(Keys.Down))
                 {
-                    direction += Direction.Down;
+                    delta += Direction.Down;
                 }
 
                 if (keyboard.IsKeyPressed(Keys.Left))
                 {
-                    direction += Direction.Left;
+                    delta += Direction.Left;
                 }
                 else if (keyboard.IsKeyPressed(Keys.Right))
                 {
-                    direction += Direction.Right;
+                    delta += Direction.Right;
                 }
 
                 // check if the direction has changed at all
-                if (direction.X != 0 || direction.Y != 0)
+                if (delta.X != 0 || delta.Y != 0)
                 {
-                    // save the current level number to see if the player's move triggered a change
-                    int currentLevel = _level;
-
-                    // move the player
-                    MovePlayer(direction);
-
-                    // if the map remains the same, trigger an event
-                    if (currentLevel == _level)
-                    {
-                        OnPlayerMoved();
-                    }
+                    TryMovePlayer(Direction.GetCardinalDirection(delta));
                 }
             }
         }

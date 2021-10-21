@@ -39,7 +39,7 @@ namespace NumeralDash.Other
         /// <summary>
         /// The title of the font.
         /// </summary>
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// The type of font.
@@ -103,12 +103,12 @@ namespace NumeralDash.Other
             throw new IndexOutOfRangeException("Invalid glyph index. Must be 33 through 126.");
         }
 
-        public CellSurface GetSurface(int glyph)
+        public CellSurface? GetSurface(int glyph)
         {
             return GetSurface(glyph, Color.White, Color.Black);
         }
 
-        public CellSurface GetSurface(int glyph, Color alternateForeground, Color alternateBackground)
+        public CellSurface? GetSurface(int glyph, Color alternateForeground, Color alternateBackground)
         {
             int newGlyph = glyph - 33;
             if (newGlyph >= 0 && newGlyph < 94)

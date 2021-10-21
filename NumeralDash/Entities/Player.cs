@@ -17,6 +17,8 @@ namespace NumeralDash.Entities
 
         Dungeon _dungeon;
 
+        public Number LastDrop { get; private set; } = Number.Empty;
+
         public Player(Point startPosition, Dungeon dungeon) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
         {
             Name = "Player";
@@ -30,23 +32,20 @@ namespace NumeralDash.Entities
         #region Position Handling
 
         /// <summary>
-        /// Changes the player's position.
+        /// Moves player's position in the given direction.
         /// </summary>
-        /// <param name="newPosition"></param>
-        public void MoveTo(Point newPosition)
+        /// <param name="d"></param>
+        public void MoveInDirection(Direction d)
         {
-            Position = newPosition;
+            Position += d;
         }
 
         /// <summary>
         /// Returns the sum of the player's current position and the given direction.
         /// </summary>
-        /// <param name="direction"></param>
+        /// <param name="d"></param>
         /// <returns></returns>
-        public Point GetNextMove(Point direction)
-        {
-            return Position.Translate(direction);
-        }
+        public Point GetNextMove(Direction d) => Position + d;
 
         public bool IsCloseTo(ICollidable c)
         {
@@ -88,10 +87,11 @@ namespace NumeralDash.Entities
             // place the number in the players inventory
             else
             {
-                Number temp = _inventory;
+                Number drop = _inventory;
                 _inventory = n;
                 OnInventoryChanged();
-                return temp;
+                LastDrop = drop;
+                return drop;
             }
         }
 
