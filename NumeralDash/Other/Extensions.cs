@@ -98,10 +98,9 @@ namespace NumeralDash.Other
 
                     xPos += charInfo.Width;
                 }
-                else if (item == ' ')
+                else if (item == ' ' && f.IsCharacterSupported(spaceCharAlternative))
                 {
-                    if (f.IsCharacterSupported(spaceCharAlternative))
-                        xPos += f.GetCharacter(spaceCharAlternative).Width;
+                    xPos += f.GetCharacter(spaceCharAlternative).Width;
                 }
             }
         }
@@ -110,7 +109,5 @@ namespace NumeralDash.Other
         {
             c.Print(0, y, text.Align(HorizontalAlignment.Center, c.Width));
         }
-
-        public static bool IsHorizontal(this Direction d) => d == Direction.Left || d == Direction.Right;
     }
 }
