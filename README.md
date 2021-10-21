@@ -11,7 +11,6 @@ Arrow buttons to move, F5 to switch full screen, Enter to restart the game (on g
 ## To be implemented:
 1. Menu system.
 2. Difficulty levels.
-3. Quick move with a shift button modifier.
 
 ## Framework:
 
