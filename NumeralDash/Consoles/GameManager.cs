@@ -47,11 +47,8 @@ namespace NumeralDash.Consoles
                 Position = (dungeonPosition.X + oneBorder, dungeonPosition.Y + oneBorder)
             };
 
-            // do this just to draw the border
             AddConsole(window, _dungeon);
-
-            // remove it to make space for the start screen
-            Children.Remove(_dungeon);
+            _dungeon.IsVisible = false;
 
             _dungeon.GameOver += OnGameOver;
 
@@ -104,8 +101,8 @@ namespace NumeralDash.Consoles
             // create special screens
             _startScreen = new(Width - sideWindowWidth, Height, _drawFont);
             _gameOverScreen = new(Width - sideWindowWidth, Height, _drawFont);
-
             Children.Add(_startScreen);
+            Children.Add(_gameOverScreen);
             
             #endregion
 
@@ -137,14 +134,14 @@ namespace NumeralDash.Consoles
             }
 
             // keyboard handling when special screens are being shown
-            else if (_startScreen.IsBeingShown || _gameOverScreen.IsBeingShown)
+            else if (_startScreen.IsVisible || _gameOverScreen.IsVisible)
             {
                 if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Enter))
                 {
-                    if (_startScreen.IsBeingShown) 
+                    if (_startScreen.IsVisible) 
                         ShowDungeon(_startScreen, _dungeon.Start);
 
-                    else if (_gameOverScreen.IsBeingShown) 
+                    else if (_gameOverScreen.IsVisible) 
                         ShowDungeon(_gameOverScreen, _dungeon.Restart);
                 }
             }
@@ -160,17 +157,15 @@ namespace NumeralDash.Consoles
 
             void ShowDungeon(SpecialScreen s, Action act)
             {
-                s.IsBeingShown = false;
-                Children.Remove(s);
-                Children.Add(_dungeon);
+                s.IsVisible = false;
+                _dungeon.IsVisible = true;
                 act();
             }
         }
 
         void OnGameOver(int level, TimeSpan timePlayed)
         {
-            Children.Remove(_dungeon);
-            Children.Add(_gameOverScreen);
+            _dungeon.IsVisible = false;
             _gameOverScreen.DisplayStats(level, timePlayed);
         }
     }

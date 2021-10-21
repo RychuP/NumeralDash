@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using SadConsole;
 using NumeralDash.Other;
+using SadRogue.Primitives;
 
 namespace NumeralDash.Consoles.SpecialScreens
 {
@@ -9,10 +11,9 @@ namespace NumeralDash.Consoles.SpecialScreens
         protected readonly TheDrawFont _drawFont;
         protected const int _textRow = 20;
 
-        public bool IsBeingShown { get; set; }
-
         public SpecialScreen(int width, int height, string top, string bottom, TheDrawFont drawFont) : base(width, height)
         {
+            IsVisible = false;
             _drawFont = drawFont;
 
             // print the game name

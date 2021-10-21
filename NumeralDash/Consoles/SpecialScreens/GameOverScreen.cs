@@ -15,7 +15,7 @@ namespace NumeralDash.Consoles.SpecialScreens
         {
             Surface.PrintCenter(_textRow, $"You have reached level {level}. Well done.");
             Surface.PrintCenter(_textRow + 2, $"Total gameplay time: {timePlayed}");
-            IsBeingShown = true;
+            IsVisible = true;
         }
     }
 }

@@ -15,8 +15,8 @@ namespace NumeralDash.Consoles
     class Dungeon : SadConsole.Console
     {
         // settings
-        //const int levelTime = 0 * 60 + 5;
-        const int levelTime = 5 * 60 + 0;               // time in seconds for the initial level
+        const int levelTime = 0 * 60 + 5;
+        //const int levelTime = 5 * 60 + 0;               // time in seconds for the initial level
         const int timeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
 
         #region Storage
@@ -31,11 +31,14 @@ namespace NumeralDash.Consoles
         int _level = 0;
         Map _map;
         Number? _numberBeingWalkedOver = null;
+        Direction _fastMoveDirection = Direction.None;
 
         // public properties
         public Player Player { get; init; }
 
         public IRule Rule { get; private set; }
+
+        public bool PlayerIsMovingFast { get; private set; }
 
         #endregion
 
@@ -238,6 +241,12 @@ namespace NumeralDash.Consoles
                 return true;
             }
             return false;
+        }
+
+        public override void Update(TimeSpan delta)
+        {
+            base.Update(delta);
+
         }
 
         public new void ProcessKeyboard(Keyboard keyboard)
