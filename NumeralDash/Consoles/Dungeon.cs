@@ -32,13 +32,12 @@ namespace NumeralDash.Consoles
         int _level = 0;
         Map _map;
         Direction _fastMoveDirection = Direction.None;
+        bool _playerIsMovingFast;
 
         // public properties
         public Player Player { get; init; }
 
         public IRule Rule { get; private set; }
-
-        public bool PlayerIsMovingFast { get; private set; }
 
         #endregion
 
@@ -77,7 +76,7 @@ namespace NumeralDash.Consoles
 
         void ChangeLevel()
         {
-            PlayerIsMovingFast = false;
+            _playerIsMovingFast = false;
 
             try
             {
@@ -194,7 +193,7 @@ namespace NumeralDash.Consoles
 
         public void StartFastMove(Direction direction)
         {
-            PlayerIsMovingFast = true;
+            _playerIsMovingFast = true;
             _fastMoveDirection = direction;
         }
 
@@ -207,9 +206,9 @@ namespace NumeralDash.Consoles
         }
 
         /// <summary>
-        /// Moves player by one tile in the given direction .
+        /// Tries to move the player by one tile in the given direction.
         /// </summary>
-        /// <param name="direction">Direction to go to.</param>
+        /// <param name="direction">Direction of travel.</param>
         /// <returns>True if the move succeeded, otherwise false.</returns>
         public bool TryMovePlayer(Direction d)
         {
@@ -233,6 +232,9 @@ namespace NumeralDash.Consoles
                             room.RemoveNumber(n);
                             Number drop = Player.PickUp(n);
                             room.PlaceNumber(drop, n.Position);
+
+                            // stop the fast move
+                            _playerIsMovingFast = false;
                         }
 
                         // check if the level is completed
@@ -254,37 +256,10 @@ namespace NumeralDash.Consoles
         {
             base.Update(delta);
 
-            if (PlayerIsMovingFast)
+            if (_playerIsMovingFast)
             {
-                Point tileCoord = Player.GetNextMove(_fastMoveDirection);
-                if (_map.TileIsWalkable(tileCoord, out Room? room))
-                {
-                    // check if the tile belongs to a room
-                    if (room is not null)
-                    {
-                        // mark it as visited if not already
-                        if (!room.Visited)
-                        {
-                            room.Visited = true;
-                        }
-
-                        // look for entities at the player's next position
-                        if (room.GetCollidableAt(tileCoord) is Entity)
-                        {
-                            // make a regular move and stop the fast move
-                            PlayerIsMovingFast = false;
-                            TryMovePlayer(_fastMoveDirection);
-                            return;
-                        }
-                    }
-
-                    // continue the fast move
-                    MovePlayer(_fastMoveDirection);
-                }
-                else
-                {
-                    PlayerIsMovingFast = false;
-                }
+                bool success = TryMovePlayer(_fastMoveDirection);
+                if (!success) _playerIsMovingFast = false;
             }
         }
 
