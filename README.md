@@ -6,7 +6,7 @@ Current mechanic:
 
 ## Controls:
 
-Arrow buttons to move (fast with the left shift), F5 to switch full screen, Enter to restart the game (on game over).
+Arrow buttons to move (fast with the left shift), F5 to switch full screen.
 
 ## To be implemented:
 1. Menu system.
