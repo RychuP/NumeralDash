@@ -13,8 +13,8 @@ namespace NumeralDash.Consoles.SpecialScreens
 
         public void DisplayStats(int level, TimeSpan timePlayed)
         {
-            Surface.PrintCenter(20, $"You have reached level {level}. Well done.");
-            Surface.PrintCenter(22, $"Total gameplay time: {timePlayed}");
+            Surface.PrintCenter(_textRow, $"You have reached level {level}. Well done.");
+            Surface.PrintCenter(_textRow + 2, $"Total gameplay time: {timePlayed}");
             IsBeingShown = true;
         }
     }

@@ -15,8 +15,9 @@ namespace NumeralDash.Consoles
     class Dungeon : SadConsole.Console
     {
         // settings
-        const int levelTime = 5 * 60 + 0,           // time in seconds for the initial level
-         timeChangePerLevel = 0 * 60 + 10;          // by how much to reduce the time per level in seconds
+        //const int levelTime = 0 * 60 + 5;
+        const int levelTime = 5 * 60 + 0;               // time in seconds for the initial level
+        const int timeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
 
         #region Storage
 

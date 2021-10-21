@@ -101,7 +101,7 @@ namespace NumeralDash.Consoles
             if (fontEnumerable is null) throw new FontLoadingException(fontFileName);
             _drawFont = fontEnumerable.ToArray()[3];
 
-            // create screens
+            // create special screens
             _startScreen = new(Width - sideWindowWidth, Height, _drawFont);
             _gameOverScreen = new(Width - sideWindowWidth, Height, _drawFont);
 
@@ -141,20 +141,11 @@ namespace NumeralDash.Consoles
             {
                 if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Enter))
                 {
-                    if (_startScreen.IsBeingShown)
-                    {
-                        _startScreen.IsBeingShown = false;
-                        Children.Remove(_startScreen);
-                        Children.Add(_dungeon);
-                        _dungeon.Start();
-                    }
-                    else if (_gameOverScreen.IsBeingShown)
-                    {
-                        _gameOverScreen.IsBeingShown = false;
-                        Children.Remove(_gameOverScreen);
-                        Children.Add(_dungeon);
-                        _dungeon.Restart();
-                    }
+                    if (_startScreen.IsBeingShown) 
+                        ShowDungeon(_startScreen, _dungeon.Start);
+
+                    else if (_gameOverScreen.IsBeingShown) 
+                        ShowDungeon(_gameOverScreen, _dungeon.Restart);
                 }
             }
 
@@ -166,6 +157,14 @@ namespace NumeralDash.Consoles
 
             // keyboard has been handled
             return true;
+
+            void ShowDungeon(SpecialScreen s, Action act)
+            {
+                s.IsBeingShown = false;
+                Children.Remove(s);
+                Children.Add(_dungeon);
+                act();
+            }
         }
 
         void OnGameOver(int level, TimeSpan timePlayed)
