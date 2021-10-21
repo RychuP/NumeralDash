@@ -59,7 +59,7 @@ namespace NumeralDash.Other
         }
 
         /// <summary>
-        /// Prints text using TheDrawFont.
+        /// Prints text using TheDrawFont. Author: Thraka.
         /// </summary>
         /// <param name="x">X coordinate of the surface.</param>
         /// <param name="y">Y coordinate of the surface.</param>

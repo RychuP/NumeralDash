@@ -16,7 +16,7 @@ namespace NumeralDash.Consoles.SpecialScreens
             IsVisible = false;
             _drawFont = drawFont;
 
-            // print the game name
+            // print the title
             Surface.PrintDraw(5, top, _drawFont, HorizontalAlignment.Center);
             Surface.PrintDraw(12, bottom, _drawFont, HorizontalAlignment.Center);
         }
