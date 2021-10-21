@@ -6,7 +6,7 @@ Current mechanic:
 
 ## Controls:
 
-Arrow buttons to move, F5 to switch full screen, Enter to restart the game (on game over).
+Arrow buttons to move (fast with the left shift), F5 to switch full screen, Enter to restart the game (on game over).
 
 ## To be implemented:
 1. Menu system.
@@ -23,4 +23,5 @@ SadConsole v9.1.1
 ## Screenshots:
 
 ![screenshot](/screenshot.png)
+
 ![screenshot](/drawfont.png)
