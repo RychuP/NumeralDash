@@ -10,7 +10,7 @@ Arrow buttons to move (fast with the left shift), F5 to switch full screen.
 
 ## To be implemented:
 1. Menu system.
-2. Difficulty levels.
+2. Challenges, monsters? Ideas...
 
 ## Framework:
 
