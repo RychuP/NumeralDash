@@ -6,7 +6,7 @@
     <ApplicationIcon />
     <StartupObject>NumeralDash.Program</StartupObject>
 	<Nullable>enable</Nullable>
-	<Version>0.6.0</Version>
+	<Version>0.6.5</Version>
 	<Authors>Ryszard Pyka</Authors>
 	<Description>A small game testing your spacial memory. Collect all numbers scattered in a dungeon and leave before the time runs out.</Description>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -14,7 +14,7 @@
 	<PackageTags>SadConsole, Game</PackageTags>
 	<PackageProjectUrl>https://github.com/RychuP/NumeralDash</PackageProjectUrl>
 	<Copyright>Ryszard Pyka</Copyright>
-	<PackageReleaseNotes>General improvements. Added start and game over screens, fast move with the left shift key.</PackageReleaseNotes>
+	<PackageReleaseNotes>Added Error Screen. Improved Keyboard Processing. Reworked GameManager constructor. Fixed console sizes. Various other small bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

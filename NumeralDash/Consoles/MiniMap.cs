@@ -17,7 +17,7 @@ namespace NumeralDash.Consoles
         public MiniMap(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
         {
             _dungeon = dungeon;
-            Print(Height / 2, "Version 0.6.5");
+            Print(Height / 2, $"Version {Program.Version}");
 
             dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
             dungeon.LevelChanged += OnLevelChanged;

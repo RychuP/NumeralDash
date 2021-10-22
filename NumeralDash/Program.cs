@@ -15,6 +15,8 @@ namespace NumeralDash
         /// </summary>
         public const float MinimumColorBrightness = 0.5f;
 
+        public const string Version = "0.6.5";
+
         static void Main(string[] args)
         {
             // calculate the cell count for the Game.Height which will fill the full screen with the given Width and font size
@@ -40,7 +42,7 @@ namespace NumeralDash
 
         static void Init()
         {
-            //Game.Instance.ToggleFullScreen();
+            Game.Instance.ToggleFullScreen();
             Game.Instance.LoadFont(@"Fonts/C64.font");
             var sc = Game.Instance.StartingConsole;
             string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";
