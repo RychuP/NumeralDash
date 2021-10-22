@@ -1,7 +1,7 @@
 # Numeral Dash
 Gameplay mechanics:
 1. Player needs to collect all numbers from the dungeon.
-2. Numbers have to be collected in a given order, which is chosen at random (out of three currently available) when the level is generated.
+2. Numbers have to be collected in a given order, which is chosen at random (out of four currently available) when the level is generated.
 3. Player can carry one number in their inventory for later use. It will be used automatically if the right number is collected. It may be replaced with a different number.
 
 ## Controls:
