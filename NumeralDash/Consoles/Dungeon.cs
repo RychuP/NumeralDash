@@ -180,14 +180,7 @@ namespace NumeralDash.Consoles
         /// </summary>
         void ChangeRule()
         {
-            // select a rule for number collections
-            var ruleNumber = Program.GetRandomIndex(3 /* number of rules in the switch expression */);
-            Rule = ruleNumber switch
-            {
-                0 => new SequentialOrder(_map.NumberCount),
-                1 => new ReverseOrder(_map.NumberCount),
-                _ => new RandomOrder(_map.NumberCount)
-            };
+            Rule = RuleBase.GetRandomRule(_map.NumberCount);
         }
 
         #endregion

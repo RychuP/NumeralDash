@@ -1,19 +1,19 @@
 ﻿using NumeralDash.Entities;
-using SadConsole;
 using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class RandomOrder : RuleBase, IRule
+    class UpAndDownOrder : RuleBase, IRule
     {
-        public string Description => "Random Order";
+        public string Description => "Up & Down Order";
+        bool _lastNumberWasHigh = true;
 
-        public RandomOrder(int count) : base(count)
+        public UpAndDownOrder(int count) : base(count)
         {
-            Color = Color.LightSalmon;
+            Color = Color.DarkOrange;
 
-            // generate numbers
-            for (int i = 1; i <= NumberCount; i++)
+            // populate reversed numbers
+            for (int i = NumberCount; i >= 1; i--)
             {
                 var n = new Number(i);
                 RemainingNumbers.Add(n);
@@ -28,13 +28,22 @@ namespace NumeralDash.Rules
         {
             if (RemainingNumbers.Count > 1)
             {
-                int index = Program.GetRandomIndex(RemainingNumbers.Count);
-                SetNextAndRemove(index);
+                if (_lastNumberWasHigh)
+                {
+                    SetNextAndRemove(0);
+                    _lastNumberWasHigh = false;
+                }
+                else
+                {
+                    SetNextAndRemove(RemainingNumbers.Count - 1);
+                    _lastNumberWasHigh = true;
+                }
                 OnNextNumberChanged(RemainingNumbers.Count + 1);
             }
             else if (RemainingNumbers.Count == 1)
             {
-                SetNextAndRemove(0);
+                NextNumber = RemainingNumbers[0];
+                RemainingNumbers.RemoveAt(0);
                 OnNextNumberChanged(1);
             }
             else

@@ -9,6 +9,7 @@ namespace NumeralDash
     class Program
     {
         static int Width = 120, Height;
+        static bool s_startFullScreen = true;
 
         /// <summary>
         /// Used to generate colors that are of a certain, minimum brightness.
@@ -42,7 +43,7 @@ namespace NumeralDash
 
         static void Init()
         {
-            Game.Instance.ToggleFullScreen();
+            if (s_startFullScreen) Game.Instance.ToggleFullScreen();
             Game.Instance.LoadFont(@"Fonts/C64.font");
             var sc = Game.Instance.StartingConsole;
             string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";

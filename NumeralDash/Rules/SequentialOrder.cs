@@ -5,13 +5,13 @@ namespace NumeralDash.Rules
 {
     class SequentialOrder : RuleBase, IRule
     {
-        public string Description => "Sequential order";
+        public string Description => "Sequential Order";
 
         public SequentialOrder(int count) : base(count)
         {
             Color = Color.Yellow;
 
-            // populate remaining numbers
+            // populate sequntial numbers
             for (int i = 1; i <= NumberCount; i++)
             {
                 var n = new Number(i);

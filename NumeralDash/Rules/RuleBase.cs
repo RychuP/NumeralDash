@@ -7,6 +7,22 @@ namespace NumeralDash.Rules
 {
     class RuleBase
     {
+        static Type[] rules = 
+        {
+            typeof(UpAndDownOrder),
+            typeof(ReverseOrder),
+            typeof(SequentialOrder),
+            typeof(RandomOrder),
+        };
+
+        public static IRule GetRandomRule(int numberCount)
+        {
+            var index = Program.GetRandomIndex(rules.Length);
+            object? o = Activator.CreateInstance(rules[index], numberCount);
+            if (o is IRule r) return r;
+            else throw new InvalidOperationException("Could not create a new rule.");
+        }
+
         #region Storage
 
         /// <summary>
@@ -52,8 +68,7 @@ namespace NumeralDash.Rules
         {
             if (RemainingNumbers.Count >= 1)
             {
-                NextNumber = RemainingNumbers[0];
-                RemainingNumbers.RemoveAt(0);
+                SetNextAndRemove(0);
                 OnNextNumberChanged(RemainingNumbers.Count + 1);
             }
             else
@@ -61,6 +76,12 @@ namespace NumeralDash.Rules
                 NextNumber = Number.Finished;
                 OnNextNumberChanged(0);
             }
+        }
+
+        protected void SetNextAndRemove(int index)
+        {
+            NextNumber = RemainingNumbers[index];
+            RemainingNumbers.RemoveAt(index);
         }
 
         #region Events

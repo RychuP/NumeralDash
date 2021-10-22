@@ -6,13 +6,13 @@ namespace NumeralDash.Rules
 {
     class ReverseOrder : RuleBase, IRule
     {
-        public string Description => "Reverse order";
+        public string Description => "Reverse Order";
 
         public ReverseOrder(int count) : base(count)
         {
             Color = Color.Turquoise;
 
-            // populate remaining numbers
+            // populate reversed numbers
             for (int i = NumberCount; i >= 1; i--)
             {
                 var n = new Number(i);

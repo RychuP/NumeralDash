@@ -9,7 +9,7 @@ namespace NumeralDash.Rules
     /// </summary>
     class EmptyOrder : RuleBase, IRule
     {
-        public string Description => "Empty order.";
+        public string Description => "Empty Order.";
 
         public EmptyOrder() : base(10) { }
     }
