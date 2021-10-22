@@ -24,4 +24,4 @@ SadConsole v9.1.1
 
 ![screenshot](/screenshot.png)
 
-![screenshot](/drawfont.png)
+![screenshot](/startscreen.png)
