@@ -30,8 +30,6 @@ namespace NumeralDash.Consoles
         Renderer _entityManager;
         int _level = 0;
         Map _map;
-        Direction _fastMoveDirection = Direction.None;
-        bool _playerIsMovingFast;
 
         // public properties
         public Player Player { get; init; }
@@ -81,8 +79,6 @@ namespace NumeralDash.Consoles
 
         void ChangeLevel()
         {
-            _playerIsMovingFast = false;
-
             try
             {
                 _map = new(_level++);
@@ -187,18 +183,11 @@ namespace NumeralDash.Consoles
 
         #region Player Management
 
-        public void StartFastMove(Direction direction)
-        {
-            _playerIsMovingFast = true;
-            _fastMoveDirection = direction;
-        }
-
         Point MovePlayer(Direction d)
         {
-            Point originalPosition = Player.Position;
             Player.MoveInDirection(d);
             OnPlayerMoved();
-            return originalPosition;
+            return Player.PrevPosition;
         }
 
         /// <summary>
@@ -228,16 +217,20 @@ namespace NumeralDash.Consoles
                             room.RemoveNumber(n);
                             Number drop = Player.PickUp(n);
                             room.PlaceNumber(drop, n.Position);
-
-                            // stop the fast move
-                            _playerIsMovingFast = false;
                         }
 
                         // check if the level is completed
-                        else if (e is Exit && Rule.NextNumber == Number.Finished)
+                        else if (e is Exit)
                         {
-                            _timer.Stop();
-                            ChangeLevel();
+                            if (Rule.NextNumber == Number.Finished)
+                            {
+                                _timer.Stop();
+                                ChangeLevel();
+                            }
+                            else
+                            {
+                                Player.SetEncounteredCollidable();
+                            }
                         }
                     }
                 }
@@ -252,64 +245,62 @@ namespace NumeralDash.Consoles
         {
             base.Update(delta);
 
-            if (_playerIsMovingFast)
+            if (Player.IsMovingFast)
             {
-                bool success = TryMovePlayer(_fastMoveDirection);
-                if (!success) _playerIsMovingFast = false;
+                bool success = TryMovePlayer(Player.FastMove.Direction);
+                if (!success) Player.StopFastMove();
             }
         }
 
         public new void ProcessKeyboard(Keyboard keyboard)
         {
             // fast move with a left shift modifier
-            if (keyboard.HasKeysDown && keyboard.IsKeyDown(Keys.LeftShift))
+            if (keyboard.HasKeysDown)
             {
-                // accept only one direction at a time
-                if (keyboard.IsKeyDown(Keys.Left))
+                if (keyboard.IsKeyDown(Keys.LeftShift))
                 {
-                    StartFastMove(Direction.Left);
-                }
-                else if (keyboard.IsKeyDown(Keys.Right))
-                {
-                    StartFastMove(Direction.Right);
-                }
-                else if (keyboard.IsKeyDown(Keys.Up))
-                {
-                    StartFastMove(Direction.Up);
-                }
-                else if (keyboard.IsKeyDown(Keys.Down))
-                {
-                    StartFastMove(Direction.Down);
+                    if (keyboard.KeysDown.Count > 1)
+                    {
+                        if (Player.IsMovingFast)
+                        {
+                            Player.FastMove.ChangeDirection(keyboard.GetDirectionFromKeysDown());
+                        }
+                        else
+                        {
+                            if (Player.EncounteredCollidable)
+                            {
+                                var direction = keyboard.GetDirectionFromKeysDown();
+                                if (direction != Player.FastMove.Direction || (direction == Player.FastMove.Direction && Player.FastMove.IsReleased))
+                                {
+                                    Player.StartFastMove(keyboard.GetDirectionFromKeysDown());
+                                }
+                                
+                            }
+                            else
+                            {
+                                Player.StartFastMove(keyboard.GetDirectionFromKeysDown());
+                            }
+                        }
+                    }
                 }
             }
+
             // normal move by one tile
-            else if (keyboard.HasKeysPressed)
+            if (keyboard.HasKeysPressed)
             {
-                Point delta = (0, 0);
+                if ( (!Player.IsMovingFast && !Player.EncounteredCollidable) || (Player.EncounteredCollidable && !keyboard.IsKeyDown(Keys.LeftShift)) )
+                    TryMovePlayer(keyboard.GetDirectionFromKeysPressed());
+            }
 
-                if (keyboard.IsKeyPressed(Keys.Up))
-                {
-                    delta += Direction.Up;
-                }
-                else if (keyboard.IsKeyPressed(Keys.Down))
-                {
-                    delta += Direction.Down;
-                }
+            if (Player.EncounteredCollidable && keyboard.IsKeyReleased(Player.FastMove.Direction.ToKey()))
+            {
+                Player.FastMove.IsReleased = true;
+            }
 
-                if (keyboard.IsKeyPressed(Keys.Left))
-                {
-                    delta += Direction.Left;
-                }
-                else if (keyboard.IsKeyPressed(Keys.Right))
-                {
-                    delta += Direction.Right;
-                }
-
-                // check if the direction has changed at all
-                if (delta.X != 0 || delta.Y != 0)
-                {
-                    TryMovePlayer(Direction.GetCardinalDirection(delta));
-                }
+            // doesn't work
+            else if (Player.IsMovingFast && keyboard.IsKeyReleased(Keys.LeftShift))
+            {
+                Player.StopFastMove();
             }
         }
 

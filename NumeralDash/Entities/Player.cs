@@ -6,23 +6,40 @@ using System.Collections.Generic;
 using System.Linq;
 using NumeralDash.Rules;
 using NumeralDash.Consoles;
+using SadConsole.Input;
 
 namespace NumeralDash.Entities
 {
     class Player : Entity
     {
         List<Number> _numbers;
-
         Number _inventory;
-
-        Dungeon _dungeon;
+        FastMove _fastMove = new();
+        bool _encounteredCollidable;
+        readonly Dungeon _dungeon;
 
         public Number LastDrop { get; private set; } = Number.Empty;
+
+        public bool IsMovingFast { get; private set; }
+
+        public FastMove FastMove => _fastMove;
+
+        public bool EncounteredCollidable
+        {
+            get => _encounteredCollidable;
+            set
+            {
+                _encounteredCollidable = value;
+            }
+        }
+
+        public Point PrevPosition { get; private set; }
 
         public Player(Point startPosition, Dungeon dungeon) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
         {
             Name = "Player";
             Position = startPosition;
+            PrevPosition = startPosition;
             _numbers = new();
             _dungeon = dungeon;
             _inventory = Number.Empty;
@@ -31,13 +48,30 @@ namespace NumeralDash.Entities
 
         #region Position Handling
 
+        public void StartFastMove(Direction d)
+        {
+            if (d != Direction.None)
+            {
+                IsMovingFast = true;
+                FastMove.ChangeDirection(d);
+            }
+        }
+
+        public void StopFastMove()
+        {
+            IsMovingFast = false;
+            FastMove.ChangeDirection();
+        }
+
         /// <summary>
-        /// Moves player's position in the given direction.
+        /// Adds direction to the player's position.
         /// </summary>
         /// <param name="d"></param>
         public void MoveInDirection(Direction d)
         {
+            PrevPosition = Position;
             Position += d;
+            _encounteredCollidable = false;
         }
 
         /// <summary>
@@ -47,6 +81,11 @@ namespace NumeralDash.Entities
         /// <returns></returns>
         public Point GetNextMove(Direction d) => Position + d;
 
+        /// <summary>
+        /// Checks if the Player's position or surrounding posititions contain a collidable entity.
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool IsCloseTo(ICollidable c)
         {
             return Position == c.Coord || Position.GetDirectionPoints().Any(p => c.CollidesWith(p));
@@ -55,6 +94,12 @@ namespace NumeralDash.Entities
         #endregion
 
         #region Number Handling
+
+        public void SetEncounteredCollidable()
+        {
+            _encounteredCollidable = true;
+            IsMovingFast = false;
+        }
 
         /// <summary>
         /// Places the number in the player's inventory or collects it if it matches Rule.NextNumber.
@@ -68,8 +113,10 @@ namespace NumeralDash.Entities
                 throw new ArgumentException("Trying to collect a duplicate number.");
             }
 
+            SetEncounteredCollidable();
+
             // check if the number can be collected and placed in the numbers list
-            else if (_dungeon.Rule.NextNumber == n)
+            if (_dungeon.Rule.NextNumber == n)
             {
                 DepositNumber(n);
 
@@ -142,8 +189,27 @@ namespace NumeralDash.Entities
         {
             _numbers = new();
             _inventory = Number.Empty;
+            StopFastMove();
         }
 
         #endregion
+    }
+
+    class FastMove
+    {
+        public void ChangeDirection()
+        {
+            ChangeDirection(Direction.None);
+        }
+
+        public void ChangeDirection(Direction d)
+        {
+            Direction = d;
+            IsReleased = false;
+        }
+
+        public Direction Direction { get; set; }
+
+        public bool IsReleased { get; set; }
     }
 }

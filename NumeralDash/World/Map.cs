@@ -21,7 +21,7 @@ namespace NumeralDash.World
                          MaxRoomGenerationAttempts = 100,     // max number of failed room position finding per map generation after which an exception is thrown
                          MaxRoadGenerationAttempts = 100,     // max number of failed road generations for all rooms per map generation after which an exception is thrown
                          GenerationAttemptsPerLevel = 10,     // this is added to the above 3 maxes and multiplied by _level
-                         NaxAttemptsMapGeneration = 100,      // how many times this object will try to generate a map with current settings
+                         MaxAttemptsMapGeneration = 100,      // how many times this object will try to generate a map with current settings
                          NumbersPerRoom = 1;                  // how many numbers per room can this map accept
 
         #region Storage
@@ -82,7 +82,7 @@ namespace NumeralDash.World
                     _failedAttemptsRoadGeneration++;
                 }
 
-                if (_failedAttemptsMapGeneration > NaxAttemptsMapGeneration)
+                if (_failedAttemptsMapGeneration > MaxAttemptsMapGeneration)
                 {
                     throw new MapGenerationException(
                         _failedAttemptsRoomGeneration,

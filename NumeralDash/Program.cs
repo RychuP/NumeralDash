@@ -9,7 +9,7 @@ namespace NumeralDash
     class Program
     {
         static int Width = 120, Height;
-        static bool s_startFullScreen = true;
+        static bool s_startFullScreen = false;
 
         /// <summary>
         /// Used to generate colors that are of a certain, minimum brightness.
