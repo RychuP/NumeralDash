@@ -47,19 +47,16 @@ class Program
     static void Init()
     {
         if (s_startFullScreen) Game.Instance.ToggleFullScreen();
-        var sc = Game.Instance.StartingConsole;
-
         try
         {
-            _ = new GameManager(Width, Height);
+            Game.Instance.Screen = new GameManager(Width, Height);
+            Game.Instance.DestroyDefaultStartingConsole();
         }
         catch
         {
-            sc.Print(2, 2, $"There has been a problem with starting the game... " +
-                $"Press Alt + F4 to close the game.");
+            Game.Instance.StartingConsole.Print(2, 2, $"There has been a problem " +
+                $"with starting the game... Press Alt + F4 to close the game.");
         }
-
-        Game.Instance.DestroyDefaultStartingConsole();
     }
 
     /// <summary>

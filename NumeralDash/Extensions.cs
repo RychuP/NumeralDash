@@ -4,6 +4,12 @@ namespace NumeralDash;
 
 public static class Extensions
 {
+    /// <summary>
+    /// Allows adding multiple screen objects at the same time.
+    /// </summary>
+    public static void Add(this ScreenObjectCollection collection, params IScreenObject[] childrenList) =>
+        Array.ForEach(childrenList, child => collection.Add(child));
+
     public static void PrintCenter(this ICellSurface c, int y, string text) =>
         c.Print(0, y, text.Align(HorizontalAlignment.Center, c.Width));
 

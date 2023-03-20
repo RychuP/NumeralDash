@@ -2,7 +2,6 @@
 using SadConsole.Input;
 using NumeralDash.World;
 using NumeralDash.Consoles.SpecialScreens;
-using SadConsole.Readers;
 
 namespace NumeralDash.Consoles;
 
@@ -26,9 +25,12 @@ class GameManager : Console
     readonly StartScreen _startScreen;
     readonly GameOverScreen _gameOverScreen;
     readonly ErrorScreen _errorScreen;
+    readonly PauseScreen _pauseScreen;
 
     public GameManager(int width, int height) : base(width, height)
     {
+        IsFocused = true;
+
         // dungeon
         Point dSize = (width - SideWindowWidth - 3, height - 2);
         Point dBorderPos = (0, 0);
@@ -56,21 +58,15 @@ class GameManager : Console
         AddChild(_miniMap, mmSize, mmBorderPos);
 
         // special screens
-        int w = Width - SideWindowWidth - 1;
-        _startScreen = new(w, Height);
-        _gameOverScreen = new(w, Height);
-        _errorScreen = new(w, Height);
-        Children.Add(_startScreen);
-        Children.Add(_gameOverScreen);
-        Children.Add(_errorScreen);
+        int sWidth = Width - SideWindowWidth - 1;
+        _startScreen = new(sWidth, Height);
+        _gameOverScreen = new(sWidth, Height);
+        _errorScreen = new(sWidth, Height);
+        _pauseScreen = new(sWidth, Height);
+        Children.Add(_startScreen, _gameOverScreen, _errorScreen, _pauseScreen);
         
         // connect borders
         this.ConnectLines();
-
-        // replace starting console
-        Game.Instance.Screen = this;
-        Game.Instance.DestroyDefaultStartingConsole();
-        IsFocused = true;
     }
 
     void AddChild(Console c, Point consoleSize, Point borderPos)
@@ -90,19 +86,50 @@ class GameManager : Console
         }
 
         // keyboard handling when special screens are being shown
-        else if (_startScreen.IsVisible || _gameOverScreen.IsVisible || _errorScreen.IsVisible)
+        else if (_startScreen.IsVisible || _gameOverScreen.IsVisible || _errorScreen.IsVisible || _pauseScreen.IsVisible)
         {
-            if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Enter))
+            if (keyboard.HasKeysPressed)
             {
-                if (_startScreen.IsVisible) 
-                    ShowDungeon(_startScreen, _dungeon.Start);
+                if (keyboard.IsKeyPressed(Keys.Enter))
+                {
+                    if (_startScreen.IsVisible)
+                        ShowDungeon(_startScreen, _dungeon.Start);
 
-                else if (_gameOverScreen.IsVisible) 
-                    ShowDungeon(_gameOverScreen, _dungeon.Restart);
+                    else if (_gameOverScreen.IsVisible)
+                        ShowDungeon(_gameOverScreen, _dungeon.Restart);
 
-                else if (_errorScreen.IsVisible)
-                    ShowDungeon(_errorScreen, _dungeon.Retry);
+                    else if (_errorScreen.IsVisible)
+                        ShowDungeon(_errorScreen, _dungeon.Retry);
+
+                    else if (_pauseScreen.IsVisible)
+                        ShowDungeon(_pauseScreen, _dungeon.Resume);
+                }
+
+                else if (keyboard.IsKeyPressed(Keys.Escape))
+                {
+                    if (_startScreen.IsVisible)
+                        Environment.Exit(0);
+
+                    else if (_gameOverScreen.IsVisible)
+                        ShowStartScreen(_gameOverScreen);
+
+                    else if (_errorScreen.IsVisible)
+                        ShowStartScreen(_errorScreen);
+
+                    else if (_pauseScreen.IsVisible)
+                    {
+                        ShowStartScreen(_pauseScreen);
+                        OnGameAbandoned();
+                    }
+                }
             }
+        }
+
+        else if (keyboard.IsKeyPressed(Keys.Escape))
+        {
+            _dungeon.Pause();
+            _pauseScreen.IsVisible = true;
+            return true;
         }
 
         // everything that happens during normal gameplay
@@ -111,20 +138,32 @@ class GameManager : Console
             _dungeon.ProcessKeyboard(keyboard);
         }
 
-        // keyboard has been handled
-        return true;
+        return base.ProcessKeyboard(keyboard);
+    }
 
-        void ShowDungeon(SpecialScreen s, Action act)
-        {
-            s.IsVisible = false;
-            _dungeon.IsVisible = true;
-            act();
-        }
+    void ShowStartScreen(SpecialScreen s)
+    {
+        s.IsVisible = false;
+        _startScreen.IsVisible = true;
+    }
+
+    void ShowDungeon(SpecialScreen s, Action act)
+    {
+        s.IsVisible = false;
+        _dungeon.IsVisible = true;
+        act();
     }
 
     void OnGameOver(int level, TimeSpan timePlayed)
     {
         _gameOverScreen.DisplayStats(level, timePlayed);
+        _miniMap.ShowProgramVersion();
+    }
+
+    void OnGameAbandoned()
+    {
+        _sideWindow.ClearItems();
+        _miniMap.ShowProgramVersion();
     }
 
     void OnMapFailedToGenerate(AttemptCounters failedAttempts)

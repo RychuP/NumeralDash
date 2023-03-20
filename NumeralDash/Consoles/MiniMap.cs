@@ -14,7 +14,7 @@ class MiniMap : Console
     public MiniMap(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
     {
         _dungeon = dungeon;
-        Print(Height / 2, $"Version {Program.Version}");
+        ShowProgramVersion();
 
         dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
         dungeon.LevelChanged += OnLevelChanged;
@@ -64,7 +64,8 @@ class MiniMap : Console
         Print(start + 4, $"Map Gen Attempts: {failedAttempts.MapGeneration}");
     }
 
-    void Print(int y, string text) => Surface.Print(0, y, text.Align(HorizontalAlignment.Center, Width));
+    void Print(int y, string text) => 
+        Surface.Print(0, y, text.Align(HorizontalAlignment.Center, Width));
 
     void OnLevelChanged(ICollectionRule rule, int level, string[] txt)
     {
@@ -83,6 +84,12 @@ class MiniMap : Console
 
     void OnGameOver(int level, TimeSpan timePlayed)
     {
+        ShowProgramVersion();
+    }
+
+    public void ShowProgramVersion()
+    {
         Surface.Clear();
+        Print(Height / 2, $"Version {Program.Version}");
     }
 }

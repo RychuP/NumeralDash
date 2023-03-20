@@ -65,12 +65,10 @@ class SideWindow : Console
     /// <summary>
     /// Erases all contents of the display items.
     /// </summary>
-    void ClearItems()
+    public void ClearItems()
     {
         foreach (var row in _rows)
-        {
             row.Clear(this);
-        }
     }
 
     #region Event Handlers

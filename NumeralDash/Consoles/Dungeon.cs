@@ -12,17 +12,17 @@ class Dungeon : Console
 {
     // settings
     //const int levelTime = 0 * 60 + 5;
-    const int levelTime = 5 * 60 + 0;               // time in seconds for the initial level
-    const int timeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
+    const int LevelTime = 5 * 60 + 0;               // time in seconds for the initial level
+    const int TimeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
 
     #region Storage
 
     // fields
     readonly Timer _timer = new(1000) { AutoReset = true };
-    TimeSpan _time;
-    readonly TimeSpan _oneSecond = new TimeSpan(0, 0, 1);
+    readonly TimeSpan _oneSecond = new(0, 0, 1);
     TimeSpan _totalTimePlayed = TimeSpan.Zero;
     Renderer _entityManager;
+    TimeSpan _time;
     int _level = 0;
     Map _map;
 
@@ -69,6 +69,7 @@ class Dungeon : Console
 
     public void Start()
     {
+        _level = 0;
         ChangeLevel();
     }
 
@@ -92,11 +93,23 @@ class Dungeon : Console
 
     void StartTimer()
     {
-        int totalTime = levelTime - (_level - 1) * timeChangePerLevel;
+        int totalTime = LevelTime - (_level - 1) * TimeChangePerLevel;
         int minutes = Convert.ToInt32(totalTime / 60);
         int seconds = totalTime - minutes * 60;
         _time = new(0, minutes, seconds);
         _timer.Start();
+    }
+
+    public void Pause()
+    {
+        _timer.Stop();
+        IsVisible = false;
+    }
+
+    public void Resume()
+    {
+        _timer.Start();
+        IsVisible = true;
     }
 
     void ChangeMap()
@@ -333,15 +346,14 @@ class Dungeon : Console
 
     public event Action<AttemptCounters>? MapFailedToGenerate;
 
-    void OnTimeElapsed(object source, ElapsedEventArgs e)
+    void OnTimeElapsed(object? o, ElapsedEventArgs e)
     {
         _time -= _oneSecond;
         _totalTimePlayed += _oneSecond;
 
         if (_time == TimeSpan.Zero)
         {
-            _timer.Stop();
-            IsVisible = false;
+            Pause();
             OnGameOver();
         }
 
