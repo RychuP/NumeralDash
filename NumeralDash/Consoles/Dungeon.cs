@@ -55,17 +55,13 @@ class Dungeon : Console
 
     #region Level Management
 
-    public void Restart()
-    {
-        _totalTimePlayed = TimeSpan.Zero;
-        _level = 0;
+    // hard reset
+    public void Restart() =>
         Start();
-    }
 
-    public void Retry()
-    {
+    // soft reset after the level generation error
+    public void Retry() =>
         ChangeLevel();
-    }
 
     public void Start()
     {
@@ -184,7 +180,7 @@ class Dungeon : Console
     /// </summary>
     void ChangeRule()
     {
-        Rule = CollectionRuleBase.GetRandomRule(_map.NumberCount);
+        Rule = CollectionRuleBase.GetNextRule(_level, _map.NumberCount);
     }
 
     #endregion

@@ -117,10 +117,7 @@ class GameManager : Console
                         ShowStartScreen(_errorScreen);
 
                     else if (_pauseScreen.IsVisible)
-                    {
-                        ShowStartScreen(_pauseScreen);
                         OnGameAbandoned();
-                    }
                 }
             }
         }
@@ -162,6 +159,7 @@ class GameManager : Console
 
     void OnGameAbandoned()
     {
+        ShowStartScreen(_pauseScreen);
         _sideWindow.ClearItems();
         _miniMap.ShowProgramVersion();
     }

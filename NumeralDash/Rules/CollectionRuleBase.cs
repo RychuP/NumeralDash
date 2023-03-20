@@ -7,10 +7,10 @@ namespace NumeralDash.Rules
     {
         static readonly Type[] s_collectionRules = 
         {
-            //typeof(UpAndDownOrder),
+            typeof(UpAndDownOrder),
             typeof(ReverseOrder),
             typeof(SequentialOrder),
-            //typeof(RandomOrder),
+            typeof(RandomOrder),
         };
 
         public static ICollectionRule GetRandomRule(int numberCount)
@@ -19,6 +19,15 @@ namespace NumeralDash.Rules
             object? o = Activator.CreateInstance(s_collectionRules[index], numberCount);
             if (o is ICollectionRule r) return r;
             else throw new InvalidOperationException("Could not create a new rule.");
+        }
+
+        public static ICollectionRule GetNextRule(int level, int numberCount)
+        {
+            return (level % 2) switch
+            {
+                1 => new SequentialOrder(numberCount),
+                _ => new ReverseOrder(numberCount)
+            };
         }
 
         #region Storage

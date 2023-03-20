@@ -13,6 +13,13 @@ public static class Extensions
     public static void PrintCenter(this ICellSurface c, int y, string text) =>
         c.Print(0, y, text.Align(HorizontalAlignment.Center, c.Width));
 
+    public static void PrintCenter(this ICellSurface c, int y, ColoredString text)
+    {
+        c.Clear(0, y, c.Width);
+        int x = (c.Width - text.Length) / 2;
+        c.Print(x, y, text);
+    }
+
     public static Keys ToKey(this Direction d) => d.Type switch
     {
         Direction.Types.Left => Keys.Left,
