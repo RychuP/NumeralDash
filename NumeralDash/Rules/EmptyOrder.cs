@@ -7,7 +7,7 @@ namespace NumeralDash.Rules
     /// <summary>
     /// Empty order in case of a map generation failure.
     /// </summary>
-    class EmptyOrder : RuleBase, IRule
+    class EmptyOrder : CollectionRuleBase, ICollectionRule
     {
         public string Description => "Empty Order.";
 

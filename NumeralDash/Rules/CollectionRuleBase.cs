@@ -1,25 +1,23 @@
-﻿using System;
-using NumeralDash.Entities;
+﻿using NumeralDash.Entities;
 using System.Collections.Generic;
-using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class RuleBase
+    class CollectionRuleBase
     {
-        static Type[] rules = 
+        static readonly Type[] s_collectionRules = 
         {
-            typeof(UpAndDownOrder),
+            //typeof(UpAndDownOrder),
             typeof(ReverseOrder),
             typeof(SequentialOrder),
-            typeof(RandomOrder),
+            //typeof(RandomOrder),
         };
 
-        public static IRule GetRandomRule(int numberCount)
+        public static ICollectionRule GetRandomRule(int numberCount)
         {
-            var index = Program.GetRandomIndex(rules.Length);
-            object? o = Activator.CreateInstance(rules[index], numberCount);
-            if (o is IRule r) return r;
+            var index = Program.GetRandomIndex(s_collectionRules.Length);
+            object? o = Activator.CreateInstance(s_collectionRules[index], numberCount);
+            if (o is ICollectionRule r) return r;
             else throw new InvalidOperationException("Could not create a new rule.");
         }
 
@@ -52,7 +50,7 @@ namespace NumeralDash.Rules
 
         #endregion
 
-        public RuleBase(int count)
+        public CollectionRuleBase(int count)
         {
             if (count < 1)
             {

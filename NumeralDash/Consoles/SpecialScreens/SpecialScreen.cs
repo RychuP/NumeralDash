@@ -1,24 +1,17 @@
-﻿using System;
-using System.Linq;
-using SadConsole;
-using NumeralDash.Other;
-using SadRogue.Primitives;
+﻿using SadConsole.Readers;
 
-namespace NumeralDash.Consoles.SpecialScreens
+namespace NumeralDash.Consoles.SpecialScreens;
+
+class SpecialScreen : ScreenSurface
 {
-    class SpecialScreen : ScreenSurface
+    protected const int TextRow = 20;
+
+    public SpecialScreen(int width, int height, string top, string bottom, TheDrawFont drawFont) : base(width, height)
     {
-        protected readonly TheDrawFont _drawFont;
-        protected const int _textRow = 20;
+        IsVisible = false;
 
-        public SpecialScreen(int width, int height, string top, string bottom, TheDrawFont drawFont) : base(width, height)
-        {
-            IsVisible = false;
-            _drawFont = drawFont;
-
-            // print the title
-            Surface.PrintDraw(5, top, _drawFont, HorizontalAlignment.Center);
-            Surface.PrintDraw(12, bottom, _drawFont, HorizontalAlignment.Center);
-        }
+        // print the title
+        Surface.PrintTheDraw(5, top, drawFont, HorizontalAlignment.Center);
+        Surface.PrintTheDraw(12, bottom, drawFont, HorizontalAlignment.Center);
     }
 }

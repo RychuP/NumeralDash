@@ -1,8 +1,7 @@
-﻿namespace NumeralDash.Entities
+﻿namespace NumeralDash.Entities;
+
+enum Layer
 {
-    enum Layer
-    {
-        Items = 1,
-        Player
-    }
+    Items = 1,
+    Player
 }

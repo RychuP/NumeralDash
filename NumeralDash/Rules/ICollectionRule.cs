@@ -1,10 +1,8 @@
 ﻿using NumeralDash.Entities;
-using SadRogue.Primitives;
-using System;
 
 namespace NumeralDash.Rules
 {
-    interface IRule
+    interface ICollectionRule
     {
         public Color Color { get; }
 

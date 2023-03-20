@@ -3,7 +3,7 @@ using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class UpAndDownOrder : RuleBase, IRule
+    class UpAndDownOrder : CollectionRuleBase, ICollectionRule
     {
         public string Description => "Up & Down Order";
         bool _lastNumberWasHigh = true;

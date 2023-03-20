@@ -49,7 +49,7 @@ namespace NumeralDash.World
         /// <summary>
         /// Contains all tile objects.
         /// </summary>
-        public TileBase[] Tiles { get; private set; }
+        public Tile[] Tiles { get; private set; }
 
         // Starting position for the player
         public Point PlayerStartPosition { get; private set; }
@@ -98,13 +98,13 @@ namespace NumeralDash.World
         {
             Width = width;
             Height = height;
-            Tiles = new TileBase[width * height];
+            Tiles = new Tile[width * height];
             _rooms = new();
 
             // Fill the entire tile array with walls
             for (int i = 0; i < Tiles.Length; i++)
             {
-                Tiles[i] = new TileWall();
+                Tiles[i] = new Wall();
             }
 
             PlayerStartPosition = (width / 2, height / 2);
@@ -151,18 +151,18 @@ namespace NumeralDash.World
         // returns true if the tile location is walkable
         public bool TileIsWalkable(Point p, out Room? room)
         {
-            TileBase tile = Tiles[p.ToIndex(Width)];
+            Tile tile = Tiles[p.ToIndex(Width)];
             room = null;
             if (!PointIsOutOfBounds(p) && !tile.IsBlockingMove)
             {
-                if (tile is TileFloor f && f.Parent is Room r) room = r;
+                if (tile is Floor f && f.Parent is Room r) room = r;
                 return true;
             }
             else return false;
         }
 
         // returns a tile at the given point p
-        public TileBase GetTile(Point p) => Tiles[p.ToIndex(Width)];
+        public Tile GetTile(Point p) => Tiles[p.ToIndex(Width)];
 
         // returns info about the tile at the given point
         public string[] GetTileInfo(Point p)
@@ -171,7 +171,7 @@ namespace NumeralDash.World
             else
             {
                 var tile = Tiles[p.ToIndex(Width)];
-                if (tile is TileFloor f) return f.GetExtendedInfo(p);
+                if (tile is Floor f) return f.GetExtendedInfo(p);
                 else return new string[] { $"Position {p}, {tile.GetInfo()}" };
             } 
         }
@@ -281,7 +281,7 @@ namespace NumeralDash.World
                     // Calculates the appropriate position (index) in the array
                     // based on the y of tile, width of map, and x of tile
                     int index = y * Width + x;
-                    Tiles[index] = new TileFloor(room);
+                    Tiles[index] = new Floor(room);
                 }
             }
         }
@@ -296,7 +296,7 @@ namespace NumeralDash.World
             foreach (var point in roadPoints)
             {
                 int index = point.ToIndex(Width);
-                Tiles[index] = new TileFloor(road)
+                Tiles[index] = new Floor(road)
                 {
                     Foreground = road.Color
                 };
@@ -327,10 +327,10 @@ namespace NumeralDash.World
             {
                 // get the tile from the map for the current road point
                 int nextTileIndex = roadPoints[index].ToIndex(Width);
-                TileBase tile = Tiles[nextTileIndex];
+                Tile tile = Tiles[nextTileIndex];
 
                 // check if the next road tile happens to be a floor -> we've reached something!
-                if (tile is TileFloor t)
+                if (tile is Floor t)
                 {
                     // check if the road will have zero length
                     if (roadPoints.Count == 1)
@@ -397,8 +397,8 @@ namespace NumeralDash.World
                         // return false when road is going along the side of the map
                         if (PointIsOutOfBounds(perpendicularPoint)) return false;
 
-                        TileBase perpendicularTile = Tiles[perpendicularPoint.ToIndex(Width)];
-                        if (perpendicularTile is TileFloor)
+                        Tile perpendicularTile = Tiles[perpendicularPoint.ToIndex(Width)];
+                        if (perpendicularTile is Floor)
                         {
                             return false;
                         }

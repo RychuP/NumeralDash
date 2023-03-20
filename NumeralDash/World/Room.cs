@@ -1,11 +1,6 @@
-﻿using System;
-using SadConsole;
-using SadRogue.Primitives;
-using System.Collections.Generic;
-using NumeralDash.Tiles;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NumeralDash.Entities;
-using SadConsole.Entities;
 
 namespace NumeralDash.World
 {

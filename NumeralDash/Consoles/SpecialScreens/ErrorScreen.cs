@@ -1,18 +1,14 @@
-﻿using System;
-using SadConsole;
-using NumeralDash.Other;
-using SadRogue.Primitives;
+﻿using SadConsole.Readers;
 
-namespace NumeralDash.Consoles.SpecialScreens
+namespace NumeralDash.Consoles.SpecialScreens;
+
+class ErrorScreen : SpecialScreen
 {
-    class ErrorScreen : SpecialScreen
+    public ErrorScreen(int width, int height, TheDrawFont drawFont) : base(width, height, "internal", "error", drawFont)
     {
-        public ErrorScreen(int width, int height, TheDrawFont drawFont) : base(width, height, "internal", "error", drawFont)
-        {
-            Surface.PrintCenter(_textRow, "Map failed to generate too many times. Algorithm is not perfect.");
-            Surface.PrintCenter(_textRow + 2, "It doesn't happen very often, but sometimes it does.");
-            Surface.PrintCenter(_textRow + 5, "Your progress is not lost.");
-            Surface.PrintCenter(_textRow + 8, "Press Enter to try again...");
-        }
+        Surface.PrintCenter(TextRow, "Map failed to generate too many times. Algorithm is not perfect.");
+        Surface.PrintCenter(TextRow + 2, "It doesn't happen very often, but sometimes it does.");
+        Surface.PrintCenter(TextRow + 5, "Your progress is not lost.");
+        Surface.PrintCenter(TextRow + 8, "Press Enter to try again...");
     }
 }

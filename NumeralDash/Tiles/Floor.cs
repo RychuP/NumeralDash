@@ -5,11 +5,11 @@ using NumeralDash.World;
 
 namespace NumeralDash.Tiles
 {
-    class TileFloor : TileBase
+    class Floor : Tile
     {
         public IConnectable Parent { get; init; }
 
-        public TileFloor(IConnectable parent, bool blocksMovement = false, bool blocksLOS = false) : 
+        public Floor(IConnectable parent, bool blocksMovement = false, bool blocksLOS = false) : 
             base(Color.DarkGray, Color.Transparent, 250, blocksMovement, blocksLOS)
         {
             Name = "Floor";

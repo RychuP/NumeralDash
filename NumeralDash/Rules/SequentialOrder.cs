@@ -3,7 +3,7 @@ using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class SequentialOrder : RuleBase, IRule
+    class SequentialOrder : CollectionRuleBase, ICollectionRule
     {
         public string Description => "Sequential Order";
 

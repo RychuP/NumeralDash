@@ -4,7 +4,7 @@ using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class ReverseOrder : RuleBase, IRule
+    class ReverseOrder : CollectionRuleBase, ICollectionRule
     {
         public string Description => "Reverse Order";
 

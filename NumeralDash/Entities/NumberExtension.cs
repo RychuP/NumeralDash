@@ -1,19 +1,14 @@
-﻿using System;
-using System.Linq;
-using SadConsole;
-using SadRogue.Primitives;
-using SadConsole.Entities;
+﻿using SadConsole.Entities;
 
-namespace NumeralDash.Entities
+namespace NumeralDash.Entities;
+
+class NumberExtension : Entity
 {
-    class NumberExtension : Entity
-    {
-        public Number Number { get; init; }
+    public Number Number { get; init; }
 
-        public NumberExtension(int charCode, Color c, Number parent) : base(c, Color.Black, charCode, (int)Layer.Items)
-        {
-            Appearance.Background = Appearance.Background.FillAlpha();
-            Number = parent;
-        }
+    public NumberExtension(int charCode, Color c, Number parent) : base(c, Color.Black, charCode, (int)Layer.Items)
+    {
+        Appearance.Background = Appearance.Background.FillAlpha();
+        Number = parent;
     }
 }

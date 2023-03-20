@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ApplicationIcon />
     <StartupObject>NumeralDash.Program</StartupObject>
 	<Nullable>enable</Nullable>
@@ -18,8 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SadConsole" Version="9.1.1" />
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
+    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.2.2" />
   </ItemGroup>
 	
   <ItemGroup>
@@ -36,6 +35,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
 
 </Project>

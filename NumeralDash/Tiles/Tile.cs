@@ -4,7 +4,7 @@ using SadRogue.Primitives;
 
 namespace NumeralDash.Tiles
 {
-    public abstract class TileBase : ColoredGlyph
+    public abstract class Tile : ColoredGlyph
     {
         // Movement and Line of Sight Flags
         public bool IsBlockingMove;
@@ -13,7 +13,7 @@ namespace NumeralDash.Tiles
         // Tile's name
         protected string Name;
 
-        public TileBase(Color foreground, Color background, int glyph, bool blockingMove=false, bool blockingLOS = false, string name = "") : 
+        public Tile(Color foreground, Color background, int glyph, bool blockingMove=false, bool blockingLOS = false, string name = "") : 
             base(foreground, background, glyph)
         {
             IsBlockingMove = blockingMove;

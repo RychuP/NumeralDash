@@ -4,7 +4,7 @@ using SadRogue.Primitives;
 
 namespace NumeralDash.Rules
 {
-    class RandomOrder : RuleBase, IRule
+    class RandomOrder : CollectionRuleBase, ICollectionRule
     {
         public string Description => "Random Order";
 

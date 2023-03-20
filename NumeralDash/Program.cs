@@ -1,77 +1,76 @@
-﻿using System;
-using SadConsole;
-using SadRogue.Primitives;
-using Console = SadConsole.Console;
+﻿global using System;
+global using SadConsole;
+global using SadRogue.Primitives;
+global using Console = SadConsole.Console;
 using NumeralDash.Consoles;
 
-namespace NumeralDash
+namespace NumeralDash;
+
+class Program
 {
-    class Program
+    static int Width = 120, Height;
+    static readonly bool s_startFullScreen = false;
+
+    /// <summary>
+    /// Used to generate colors that are of a certain, minimum brightness.
+    /// </summary>
+    public const float MinimumColorBrightness = 0.5f;
+
+    public const string Version = "0.6.5";
+
+    static void Main(string[] args)
     {
-        static int Width = 120, Height;
-        static bool s_startFullScreen = false;
+        // calculate the cell count for the Game.Height which will fill the full screen with the given Width and font size
+        Point fontSize = (8, 16);
+        int pixelWidth = Width * fontSize.X,
+            pixelHeight = pixelWidth * 9 / 16;
+        Height = (int)Math.Round((decimal)(pixelHeight / fontSize.Y)) + 1;
 
-        /// <summary>
-        /// Used to generate colors that are of a certain, minimum brightness.
-        /// </summary>
-        public const float MinimumColorBrightness = 0.5f;
+        // set title and resize mode
+        Settings.WindowTitle = "Numeral Dash";
+        Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
 
-        public const string Version = "0.6.5";
+        // Setup the engine and create the main window.
+        Game.Create(Width, Height);
 
-        static void Main(string[] args)
-        {
-            // calculate the cell count for the Game.Height which will fill the full screen with the given Width and font size
-            Point fontSize = (8, 16);
-            int pixelWidth = Width * fontSize.X,
-                pixelHeight = pixelWidth * 9 / 16;
-            Height = (int)Math.Round((decimal)(pixelHeight / fontSize.Y)) + 1;
+        // Hook the start event so we can add consoles to the system.
+        Game.Instance.OnStart += Init;
 
-            // set title and resize mode
-            Settings.WindowTitle = "Numeral Dash";
-            Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
-
-            // Setup the engine and create the main window.
-            Game.Create(Width, Height);
-
-            // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += Init;
-
-            // Start the game.
-            Game.Instance.Run();
-            Game.Instance.Dispose();
-        }
-
-        static void Init()
-        {
-            if (s_startFullScreen) Game.Instance.ToggleFullScreen();
-            Game.Instance.LoadFont(@"Fonts/C64.font");
-            var sc = Game.Instance.StartingConsole;
-            string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";
-
-            try
-            {
-                var gm = new GameManager(Width, Height);
-            }
-            catch (FontLoadingException e)
-            {
-                sc.Print(2, 2, $"{problem} loading the font file {e.Message}... {exit}");
-            }
-            catch
-            {
-                sc.Print(2, 2, $"{problem} starting the game... {exit}");
-            }
-        }
-
-        /// <summary>
-        /// Returns a random color.
-        /// </summary>
-        /// <returns></returns>
-        public static Color GetRandomColor() => Color.White.GetRandomColor(Game.Instance.Random);
-
-        /// <summary>
-        /// Returns a random index (between 0 and count - 1).
-        /// </summary>
-        /// <param name="count">Size of the collection.</param>
-        public static int GetRandomIndex(int count) => Game.Instance.Random.Next(0, count);
+        // Start the game.
+        Game.Instance.Run();
+        Game.Instance.Dispose();
     }
+
+    static void Init()
+    {
+        if (s_startFullScreen) Game.Instance.ToggleFullScreen();
+        Game.Instance.LoadFont(@"Fonts/C64.font");
+        var sc = Game.Instance.StartingConsole;
+        string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";
+
+        try
+        {
+            var gm = new GameManager(Width, Height);
+        }
+        catch (FontLoadingException e)
+        {
+            sc.Print(2, 2, $"{problem} loading the font file {e.Message}... {exit}");
+        }
+        catch
+        {
+            sc.Print(2, 2, $"{problem} starting the game... {exit}");
+        }
+    }
+
+    /// <summary>
+    /// Returns a random color.
+    /// </summary>
+    /// <returns></returns>
+    public static Color GetRandomColor() => Color.White.GetRandomColor(Game.Instance.Random);
+
+    /// <summary>
+    /// Returns a random index (between 0 and count - 1).
+    /// </summary>
+    /// <param name="count">Size of the collection.</param>
+    public static int GetRandomIndex(int count) => Game.Instance.Random.Next(0, count);
 }

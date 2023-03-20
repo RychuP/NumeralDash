@@ -1,75 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SadConsole;
-using SadRogue.Primitives;
-using Console = SadConsole.Console;
+﻿using System.Collections.Generic;
 
-namespace NumeralDash.Consoles.SideWindowParts
+namespace NumeralDash.Consoles.SideWindowParts;
+
+class Item
 {
-    class Item
+    static Dictionary<ShortNames, string> LongNames = new()
     {
-        static Dictionary<ShortNames, string> LongNames = new()
-        {
-            {ShortNames.Rule, "Collection Rule"},
-        };
+        {ShortNames.Rule, "Collection Rule"},
+    };
 
-        public enum ShortNames
-        {
-            Rule,
-            Next,
-            Inv,
-            Last,
-            Timer,
-            Level,
-            Total,
-            Remain
-        }
+    public enum ShortNames
+    {
+        Rule,
+        Next,
+        Inv,
+        Last,
+        Timer,
+        Level,
+        Total,
+        Remain
+    }
 
-        // settings
-        const int contentBorderTop = 1;
+    // settings
+    const int contentBorderTop = 1;
 
-        // properties
-        public ShortNames Name;
-        public string Title;
-        public Point Position;          // top left corner point of the item in the SideWindow coordinates
-        public int Width;
+    // properties
+    public ShortNames Name;
+    public string Title;
+    public Point Position;          // top left corner point of the item in the SideWindow coordinates
+    public int Width;
 
-        public Item(ShortNames n)
-        {
-            Name = n;
-            Title = LongNames.ContainsKey(n) ? LongNames[n] : n.ToString();
-        }
+    public Item(ShortNames n)
+    {
+        Name = n;
+        Title = LongNames.ContainsKey(n) ? LongNames[n] : n.ToString();
+    }
 
-        /// <summary>
-        /// Displays initial look for the item.
-        /// </summary>
-        /// <param name="c"></param>
-        public void Display(Console c)
-        {
-            // print title
-            string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, '-');
-            c.Print(Position.X, Position.Y, title);
-        }
+    /// <summary>
+    /// Displays initial look for the item.
+    /// </summary>
+    /// <param name="c"></param>
+    public void Display(Console c)
+    {
+        // print title
+        string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, '-');
+        c.Print(Position.X, Position.Y, title);
+    }
 
-        /// <summary>
-        /// Displays content for the item.
-        /// </summary>
-        /// <param name="c"></param>
-        /// <param name="s"></param>
-        /// <param name="k"></param>
-        public void Display(Console c, string s, Color k)
-        {
-            s = s.Align(HorizontalAlignment.Center, Width);
-            ColoredString cs = s.CreateColored(k);
-            c.Print(Position.X, Position.Y + contentBorderTop + 1, cs);
-        }
+    /// <summary>
+    /// Displays content for the item.
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="s"></param>
+    /// <param name="k"></param>
+    public void Display(Console c, string s, Color k)
+    {
+        s = s.Align(HorizontalAlignment.Center, Width);
+        ColoredString cs = s.CreateColored(k);
+        c.Print(Position.X, Position.Y + contentBorderTop + 1, cs);
+    }
 
-        public void Clear(Console c)
-        {
-            Display(c, string.Empty, c.DefaultForeground);
-        }
+    public void Clear(Console c)
+    {
+        Display(c, string.Empty, c.DefaultForeground);
     }
 }
