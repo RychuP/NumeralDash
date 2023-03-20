@@ -1,11 +1,8 @@
-﻿using System;
-using SadConsole.Readers;
-
-namespace NumeralDash.Consoles.SpecialScreens;
+﻿namespace NumeralDash.Consoles.SpecialScreens;
 
 class GameOverScreen : SpecialScreen
 {
-    public GameOverScreen(int width, int height, TheDrawFont drawFont) : base(width, height, "game", "over", drawFont)
+    public GameOverScreen(int width, int height) : base(width, height, "game", "over")
     {
         Surface.PrintCenter(TextRow + 6, "Press Enter to try again...");
     }

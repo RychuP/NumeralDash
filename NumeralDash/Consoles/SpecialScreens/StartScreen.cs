@@ -1,10 +1,8 @@
-﻿using SadConsole.Readers;
-
-namespace NumeralDash.Consoles.SpecialScreens
+﻿namespace NumeralDash.Consoles.SpecialScreens
 {
     class StartScreen : SpecialScreen
     {
-        public StartScreen(int width, int height, TheDrawFont drawFont) : base(width, height, "numeral", "dash", drawFont)
+        public StartScreen(int width, int height) : base(width, height, "numeral", "dash")
         {
             Surface.PrintCenter(TextRow, "Collect all numbers scattered around the dungeon in the given order");
             Surface.PrintCenter(TextRow + 2, "and leave before the time runs out.");

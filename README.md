@@ -22,6 +22,6 @@ SadConsole v9.1.1
 
 ## Screenshots:
 
-![screenshot](/screenshot.png)
+![screenshot](/ScreenShots/screenshot.png)
 
-![screenshot](/startscreen.png)
+![screenshot](/ScreenShots/startscreen.png)

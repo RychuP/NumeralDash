@@ -26,7 +26,6 @@ class GameManager : Console
     readonly StartScreen _startScreen;
     readonly GameOverScreen _gameOverScreen;
     readonly ErrorScreen _errorScreen;
-    readonly TheDrawFont _drawFont;
 
     public GameManager(int width, int height) : base(width, height)
     {
@@ -56,16 +55,11 @@ class GameManager : Console
         };
         AddChild(_miniMap, mmSize, mmBorderPos);
 
-        // draw font
-        string fontFileName = "DESTRUCX.TDF";
-        var fontEnumerable = TheDrawFont.ReadFonts(@"Fonts/" + fontFileName);
-        if (fontEnumerable is null) throw new FontLoadingException(fontFileName);
-        _drawFont = fontEnumerable.ToArray()[3];
-
         // special screens
-        _startScreen = new(Width - SideWindowWidth - 1, Height, _drawFont);
-        _gameOverScreen = new(Width - SideWindowWidth - 1, Height, _drawFont);
-        _errorScreen = new(Width - SideWindowWidth - 1, Height, _drawFont);
+        int w = Width - SideWindowWidth - 1;
+        _startScreen = new(w, Height);
+        _gameOverScreen = new(w, Height);
+        _errorScreen = new(w, Height);
         Children.Add(_startScreen);
         Children.Add(_gameOverScreen);
         Children.Add(_errorScreen);
@@ -137,9 +131,4 @@ class GameManager : Console
     {
         _errorScreen.IsVisible = true;
     }
-}
-
-public class FontLoadingException : Exception
-{
-    public FontLoadingException(string message) : base(message) { }
 }

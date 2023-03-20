@@ -30,13 +30,16 @@ class Program
         Settings.WindowTitle = "Numeral Dash";
         Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
 
-        // Setup the engine and create the main window.
+        // setup the engine and create the main window.
         Game.Create(Width, Height);
 
-        // Hook the start event so we can add consoles to the system.
+        // hook the start event so we can add consoles to the system.
         Game.Instance.OnStart += Init;
 
-        // Start the game.
+        // reduce repeat delay
+        Game.Instance.Keyboard.InitialRepeatDelay = 0.2f;
+
+        // start the game
         Game.Instance.Run();
         Game.Instance.Dispose();
     }
@@ -44,33 +47,32 @@ class Program
     static void Init()
     {
         if (s_startFullScreen) Game.Instance.ToggleFullScreen();
-        Game.Instance.LoadFont(@"Fonts/C64.font");
         var sc = Game.Instance.StartingConsole;
-        string problem = "There has been a problem with", exit = "Press Alt + F4 to close the game.";
 
         try
         {
-            var gm = new GameManager(Width, Height);
-        }
-        catch (FontLoadingException e)
-        {
-            sc.Print(2, 2, $"{problem} loading the font file {e.Message}... {exit}");
+            _ = new GameManager(Width, Height);
         }
         catch
         {
-            sc.Print(2, 2, $"{problem} starting the game... {exit}");
+            sc.Print(2, 2, $"There has been a problem with starting the game... " +
+                $"Press Alt + F4 to close the game.");
         }
+
+        Game.Instance.DestroyDefaultStartingConsole();
     }
 
     /// <summary>
     /// Returns a random color.
     /// </summary>
     /// <returns></returns>
-    public static Color GetRandomColor() => Color.White.GetRandomColor(Game.Instance.Random);
+    public static Color GetRandomColor() => 
+        Color.White.GetRandomColor(Game.Instance.Random);
 
     /// <summary>
     /// Returns a random index (between 0 and count - 1).
     /// </summary>
     /// <param name="count">Size of the collection.</param>
-    public static int GetRandomIndex(int count) => Game.Instance.Random.Next(0, count);
+    public static int GetRandomIndex(int count) => 
+        Game.Instance.Random.Next(0, count);
 }

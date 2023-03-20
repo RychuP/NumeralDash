@@ -22,13 +22,13 @@
   </ItemGroup>
 	
   <ItemGroup>
-    <None Update="Fonts\C64.font">
+    <None Update="Resources\Fonts\C64.font">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Fonts\DESTRUCX.TDF">
+    <None Update="Resources\Fonts\DESTRUCX.TDF">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Fonts\Yayo_c64.png">
+    <None Update="Resources\Fonts\Yayo_c64.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\LICENSE">
@@ -38,7 +38,7 @@
   </ItemGroup>
 	
   <ItemGroup>
-    <Folder Include="Resources\" />
+    <Folder Include="Resources\Sounds\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,4 @@
-﻿using System;
-using SadConsole.Entities;
+﻿using SadConsole.Entities;
 using NumeralDash.World;
 using NumeralDash.Entities;
 using System.Linq;
@@ -38,7 +37,7 @@ class Dungeon : Console
     {
         _map = new Map();
         _timer.Elapsed += OnTimeElapsed;
-        Font = Game.Instance.Fonts["C64"];
+        Font = Fonts.C64;
 
         // entity manager (temporary -> will be removed in ChangeMap)
         _entityManager = new Renderer();

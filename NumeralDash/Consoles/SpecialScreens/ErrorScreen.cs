@@ -1,10 +1,8 @@
-﻿using SadConsole.Readers;
-
-namespace NumeralDash.Consoles.SpecialScreens;
+﻿namespace NumeralDash.Consoles.SpecialScreens;
 
 class ErrorScreen : SpecialScreen
 {
-    public ErrorScreen(int width, int height, TheDrawFont drawFont) : base(width, height, "internal", "error", drawFont)
+    public ErrorScreen(int width, int height) : base(width, height, "internal", "error")
     {
         Surface.PrintCenter(TextRow, "Map failed to generate too many times. Algorithm is not perfect.");
         Surface.PrintCenter(TextRow + 2, "It doesn't happen very often, but sometimes it does.");
