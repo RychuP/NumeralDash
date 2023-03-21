@@ -36,12 +36,12 @@ class SideWindow : Console
         }
 
         // hook events
-        dungeon.LevelChanged += OnLevelChanged;
-        dungeon.Player.InventoryChanged += OnInventoryChanged;
-        dungeon.Player.DepositMade += OnDepositMade;
-        dungeon.TimeElapsed += OnTimeElapsed;
-        dungeon.GameOver += OnGameOver;
-        dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
+        dungeon.LevelChanged += Dungeon_OnLevelChanged;
+        dungeon.Player.InventoryChanged += Player_OnInventoryChanged;
+        dungeon.Player.DepositMade += Player_OnDepositMade;
+        dungeon.TimeElapsed += Dungeon_OnTimeElapsed;
+        dungeon.GameOver += Dungeon_OnGameOver;
+        dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
     }
 
     public void PrintItemContent(Item.ShortNames itemName, string s, Color c)
@@ -73,7 +73,7 @@ class SideWindow : Console
 
     #region Event Handlers
 
-    void OnInventoryChanged(Number n)
+    void Player_OnInventoryChanged(Number n)
     {
         PrintItemContent(Item.ShortNames.Inv, n.ToString(), n.Color);
     }
@@ -97,30 +97,30 @@ class SideWindow : Console
         OnNextNumberChanged(r.NextNumber, r.Numbers.Length);
     }
 
-    void OnDepositMade(Number n, int totalNumbers)
+    void Player_OnDepositMade(Number n, int totalNumbers)
     {
         PrintItemContent(Item.ShortNames.Last, n.ToString(), n.Color);
         PrintItemContent(Item.ShortNames.Total, totalNumbers.ToString(), Color.White);
     }
 
-    void OnLevelChanged(ICollectionRule rule, int level, string[] s)
+    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
     {
         ClearItems();
         PrintItemContent(Item.ShortNames.Level, level.ToString(), DefaultForeground);
         OnRuleChanged(rule);
     }
 
-    void OnTimeElapsed(TimeSpan t)
+    void Dungeon_OnTimeElapsed(TimeSpan t)
     {
         PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.LightSkyBlue);
     }
 
-    void OnGameOver(int level, TimeSpan timePlayed)
+    void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
     {
         ClearItems();
     }
 
-    void OnMapFailedToGenerate(AttemptCounters failedAttempts)
+    void Dungeon_OnMapFailedToGenerate(AttemptCounters failedAttempts)
     {
         ClearItems();
     }

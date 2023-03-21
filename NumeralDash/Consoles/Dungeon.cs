@@ -10,12 +10,10 @@ namespace NumeralDash.Consoles;
 
 class Dungeon : Console
 {
-    // settings
+    #region Fields
     //const int levelTime = 0 * 60 + 5;
     const int LevelTime = 5 * 60 + 0;               // time in seconds for the initial level
     const int TimeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
-
-    #region Storage
 
     // fields
     readonly Timer _timer = new(1000) { AutoReset = true };
@@ -25,14 +23,9 @@ class Dungeon : Console
     TimeSpan _time;
     int _level = 0;
     Map _map;
+    #endregion Fields
 
-    // public properties
-    public Player Player { get; init; }
-
-    public ICollectionRule Rule { get; private set; }
-
-    #endregion
-
+    #region Constructors
     public Dungeon(int viewSizeX, int viewSizeY) : base(viewSizeX, viewSizeY, Map.DefaultSize, Map.DefaultSize)
     {
         _map = new Map();
@@ -52,9 +45,14 @@ class Dungeon : Console
 
         IsVisible = false;
     }
+    #endregion Constructors
 
-    #region Level Management
+    #region Properties
+    public Player Player { get; init; }
+    public ICollectionRule Rule { get; private set; }
+    #endregion Properties
 
+    #region Methods
     // hard reset
     public void Restart() =>
         Start();
@@ -181,18 +179,7 @@ class Dungeon : Console
     void ChangeRule()
     {
         Rule = CollectionRuleBase.GetNextRule(_level, _map.NumberCount);
-    }
-
-    #endregion
-
-    #region Player Management
-
-    Point MovePlayer(Direction d)
-    {
-        Player.MoveInDirection(d);
-        OnPlayerMoved();
-        return Player.PrevPosition;
-    }
+    }    
 
     /// <summary>
     /// Tries to move the player by one tile in the given direction.
@@ -201,10 +188,11 @@ class Dungeon : Console
     /// <returns>True if the move succeeded, otherwise false.</returns>
     public bool TryMovePlayer(Direction d)
     {
-        Point tileCoord = Player.GetNextMove(d);
-        if (_map.TileIsWalkable(tileCoord, out Room? room))
+        Point newPosition = Player.GetNextMove(d);
+        if (_map.IsWalkable(newPosition, out Room? room))
         {
-            Point playerPrevPosition = MovePlayer(d);
+            var prevPosition = Player.Position;
+            Player.Position = newPosition;
 
             // check if the tile belongs to a room
             if (room is not null)
@@ -212,10 +200,10 @@ class Dungeon : Console
                 if (!room.Visited) room.Visited = true;
 
                 // look for entities at the player's position
-                if (room.GetCollidableAt(tileCoord) is Entity e)
+                if (room.GetCollidableAt(newPosition) is Entity e)
                 {
                     // check if the player is walking over a long, multicell number and prevent that type of collections
-                    if (e is Number n && !n.Coords.Contains(playerPrevPosition))
+                    if (e is Number n && !n.Coords.Contains(prevPosition))
                     {
                         // player can collect the number
                         room.RemoveNumber(n);
@@ -328,18 +316,6 @@ class Dungeon : Console
             (keyboard.IsKeyReleased(Keys.LeftShift) || keyboard.IsKeyReleased(Keys.LeftControl));
     }
 
-    #endregion
-
-    #region Events
-
-    void OnPlayerMoved()
-    {
-        // PlayerMoved?.Invoke(_map.GetTileInfo(Player.Position));
-        PlayerMoved?.Invoke();
-    }
-
-    public event Action? PlayerMoved;
-
     void OnLevelChanged()
     {
         var mapGenerationInfo = new string[]
@@ -353,14 +329,10 @@ class Dungeon : Console
         TimeElapsed?.Invoke(_time);
     }
 
-    public event Action<ICollectionRule, int, string[]>? LevelChanged;
-
     void OnMapFailedToGenerate(AttemptCounters failedAttempts)
     {
         MapFailedToGenerate?.Invoke(failedAttempts);
     }
-
-    public event Action<AttemptCounters>? MapFailedToGenerate;
 
     void OnTimeElapsed(object? o, ElapsedEventArgs e)
     {
@@ -376,14 +348,17 @@ class Dungeon : Console
         TimeElapsed?.Invoke(_time);
     }
 
-    public event Action<TimeSpan>? TimeElapsed;
-
     void OnGameOver()
     {
         GameOver?.Invoke(_level, _totalTimePlayed);
     }
-
-    public event Action<int, TimeSpan>? GameOver;
-
     #endregion
+
+    #region Events
+    public event Action<TimeSpan>? TimeElapsed;
+    public event Action<int, TimeSpan>? GameOver;
+    public event Action<AttemptCounters>? MapFailedToGenerate;
+    public event Action<ICollectionRule, int, string[]>? LevelChanged;
+    public event Action? PlayerMoved;
+    #endregion Events
 }

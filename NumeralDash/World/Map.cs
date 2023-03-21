@@ -149,7 +149,7 @@ namespace NumeralDash.World
         #region Tile Management
 
         // returns true if the tile location is walkable
-        public bool TileIsWalkable(Point p, out Room? room)
+        public bool IsWalkable(Point p, out Room? room)
         {
             Tile tile = Tiles[p.ToIndex(Width)];
             room = null;

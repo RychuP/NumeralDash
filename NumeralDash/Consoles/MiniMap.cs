@@ -16,10 +16,10 @@ class MiniMap : Console
         _dungeon = dungeon;
         ShowProgramVersion();
 
-        dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
-        dungeon.LevelChanged += OnLevelChanged;
-        dungeon.PlayerMoved += OnPlayerMoved;
-        dungeon.GameOver += OnGameOver;
+        dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
+        dungeon.LevelChanged += Dungeon_OnLevelChanged;
+        dungeon.Player.PositionChanged += Player_OnPositionChanged;
+        dungeon.GameOver += Dungeon_OnGameOver;
     }
 
     public override void Update(TimeSpan delta)
@@ -51,7 +51,7 @@ class MiniMap : Console
         );
     }
 
-    void OnPlayerMoved()
+    void Player_OnPositionChanged(object? o, EventArgs e)
     {
         Point newViewPos = GetNewViewPosition();
         if (_lastLocalViewPosition != newViewPos)
@@ -61,7 +61,7 @@ class MiniMap : Console
         }
     }
 
-    void OnMapFailedToGenerate(AttemptCounters failedAttempts)
+    void Dungeon_OnMapFailedToGenerate(AttemptCounters failedAttempts)
     {
         Surface.Clear();
         int start = (Height - 6) / 2;
@@ -73,7 +73,7 @@ class MiniMap : Console
     void Print(int y, string text) => 
         Surface.Print(0, y, text.Align(HorizontalAlignment.Center, Width));
 
-    void OnLevelChanged(ICollectionRule rule, int level, string[] txt)
+    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] txt)
     {
         // calculate new view size
         float widthRatio = (float) _dungeon.View.Width / _dungeon.Width;
@@ -88,7 +88,7 @@ class MiniMap : Console
         Display();
     }
 
-    void OnGameOver(int level, TimeSpan timePlayed)
+    void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
     {
         ShowProgramVersion();
     }

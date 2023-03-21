@@ -37,8 +37,8 @@ class GameManager : Console
         _dungeon = new(dSize.X / 2 - 2, dSize.Y) {
             Position = (dBorderPos.X + 1, dBorderPos.Y + 1),
         };
-        _dungeon.GameOver += OnGameOver;
-        _dungeon.MapFailedToGenerate += OnMapFailedToGenerate;
+        _dungeon.GameOver += Dungeon_OnGameOver;
+        _dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
         AddChild(_dungeon, dSize, dBorderPos);
 
         // side window
@@ -155,7 +155,7 @@ class GameManager : Console
         act();
     }
 
-    void OnGameOver(int level, TimeSpan timePlayed)
+    void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
     {
         _gameOverScreen.DisplayStats(level, timePlayed);
         _miniMap.ShowProgramVersion();
@@ -168,7 +168,7 @@ class GameManager : Console
         _miniMap.ShowProgramVersion();
     }
 
-    void OnMapFailedToGenerate(AttemptCounters failedAttempts)
+    void Dungeon_OnMapFailedToGenerate(AttemptCounters failedAttempts)
     {
         _errorScreen.IsVisible = true;
     }

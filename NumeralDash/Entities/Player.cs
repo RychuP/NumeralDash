@@ -8,28 +8,33 @@ namespace NumeralDash.Entities;
 
 class Player : Entity
 {
+    #region Fields
     List<Number> _numbers;
     Number _inventory;
     readonly Dungeon _dungeon;
     bool _encounteredCollidable = false;
+    #endregion Fields
 
-    public Number LastDrop { get; private set; } = Number.Empty;
-
-    public FastMove FastMove { get; init; } = new();
-
-    public Point PrevPosition { get; private set; }
-
+    #region Constructors
     public Player(Point startPosition, Dungeon dungeon) : base(Color.Yellow, Color.Black, glyph: 1, (int) Layer.Player)
     {
         Name = "Player";
         Position = startPosition;
-        PrevPosition = startPosition;
         _numbers = new();
         _dungeon = dungeon;
         _inventory = Number.Empty;
         dungeon.LevelChanged += Dungeon_OnLevelChanged;
         FastMove.Started += FastMove_OnStarted;
     }
+    #endregion Constructors
+
+    #region Properties
+    public Number LastDrop { get; private set; } = Number.Empty;
+
+    public FastMove FastMove { get; init; } = new();
+
+    public bool IsMovingFast =>
+        FastMove.IsOn;
 
     public bool EncounteredCollidable
     {
@@ -40,20 +45,16 @@ class Player : Entity
             OnEncounteredCollidableChanged(value);
         }
     }
+    #endregion Properties
 
-    #region Position Handling
-    public bool IsMovingFast =>
-        FastMove.IsOn;
-
+    #region Methods
     /// <summary>
     /// Adds direction to the player's position.
     /// </summary>
     /// <param name="d"></param>
-    public void MoveInDirection(Direction d)
+    public void Move(Direction d)
     {
-        PrevPosition = Position;
         Position += d;
-        EncounteredCollidable = false;
     }
 
     /// <summary>
@@ -61,21 +62,17 @@ class Player : Entity
     /// </summary>
     /// <param name="d"></param>
     /// <returns></returns>
-    public Point GetNextMove(Direction d) => Position + d;
+    public Point GetNextMove(Direction d) => 
+        Position + d;
 
     /// <summary>
     /// Checks if the Player's position or surrounding posititions contain a collidable entity.
     /// </summary>
     /// <param name="c"></param>
     /// <returns></returns>
-    public bool IsCloseTo(ICollidable c)
-    {
-        return Position == c.Coord || Position.GetDirectionPoints().Any(p => c.CollidesWith(p));
-    }
+    public bool IsCloseTo(ICollidable c) =>
+        Position == c.Coord || Position.GetDirectionPoints().Any(p => c.CollidesWith(p));
 
-    #endregion
-
-    #region Number Handling
     /// <summary>
     /// Places the number in the player's inventory or collects it if it matches Rule.NextNumber.
     /// </summary>
@@ -128,10 +125,6 @@ class Player : Entity
         OnDepositMade();
     }
 
-    #endregion
-
-    #region Events
-
     void FastMove_OnStarted(object? o, EventArgs e)
     {
         EncounteredCollidable = false;
@@ -140,6 +133,19 @@ class Player : Entity
     void FastMove_OnStopped(object? o, EventArgs e)
     {
         
+    }
+
+    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
+    {
+        _numbers = new();
+        _inventory = Number.Empty;
+        FastMove.Reset();
+    }
+
+    protected override void OnPositionChanged(Point oldPosition, Point newPosition)
+    {
+        EncounteredCollidable = false;
+        base.OnPositionChanged(oldPosition, newPosition);
     }
 
     /// <summary>
@@ -151,11 +157,6 @@ class Player : Entity
     }
 
     /// <summary>
-    /// Raised when the player has placed a new number in their inventory.
-    /// </summary>
-    public event Action<Number>? InventoryChanged;
-
-    /// <summary>
     /// Raises the NumbersChanged event.
     /// </summary>
     void OnDepositMade()
@@ -165,81 +166,22 @@ class Player : Entity
         DepositMade?.Invoke(lastNumber, totalNumbersCollected);
     }
 
-    /// <summary>
-    /// Raised when the player has collected a valid number and placed it in their numbers list;
-    /// </summary>
-    public event Action<Number, int>? DepositMade;
-
-    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
-    {
-        _numbers = new();
-        _inventory = Number.Empty;
-        FastMove.Reset();
-    }
-
     void OnEncounteredCollidableChanged(bool newValue)
     {
         if (IsMovingFast && newValue == true)
             FastMove.Stop();
     }
-    #endregion
-}
+    #endregion Methods
 
-class FastMove
-{
-    Direction _direction = Direction.None;
-    bool _isOn = false;
+    #region Events
+    /// <summary>
+    /// Raised when the player has collected a valid number and placed it in their numbers list;
+    /// </summary>
+    public event Action<Number, int>? DepositMade;
 
-    public void Reset() =>
-        Stop();
-
-    public void Start(Direction direction)
-    {
-        if (direction == Direction.None)
-            throw new ArgumentException("Invalid start direction.");
-        Direction = direction;
-        IsOn = true;
-    }
-
-    public void Stop()
-    {
-        Direction = Direction.None;
-        IsOn = false;
-    }
-
-    public void ChangeDirection(Direction direction) =>
-        Direction = direction;
-
-    public Direction Direction
-    {
-        get => _direction;
-        set
-        {
-            if (value != Direction.None && !value.IsCardinal())
-                throw new ArgumentException("Invalid direction.");
-            _direction = value;
-        }
-    }
-
-    public bool IsOn
-    {
-        get => _isOn;
-        set
-        {
-            bool prevValue = _isOn;
-            _isOn = value;
-            OnIsOnChanged(prevValue, value);
-        }
-    }
-
-    void OnIsOnChanged(bool prevValue, bool newValue)
-    {
-        if (prevValue == true && newValue == false)
-            Stopped?.Invoke(this, EventArgs.Empty);
-        else if (prevValue == false && newValue == true)
-            Started?.Invoke(this, EventArgs.Empty);
-    }
-
-    public event EventHandler? Started;
-    public event EventHandler? Stopped;
+    /// <summary>
+    /// Raised when the player has placed a new number in their inventory.
+    /// </summary>
+    public event Action<Number>? InventoryChanged;
+    #endregion Events
 }
