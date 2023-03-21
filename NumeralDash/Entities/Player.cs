@@ -13,6 +13,7 @@ class Player : Entity
     Number _inventory;
     readonly Dungeon _dungeon;
     bool _encounteredCollidable = false;
+    bool _isAtIntersection = false;
     #endregion Fields
 
     #region Constructors
@@ -35,6 +36,17 @@ class Player : Entity
 
     public bool IsMovingFast =>
         FastMove.IsOn;
+
+    public bool IsAtIntersection
+    {
+        get => _isAtIntersection;
+        set
+        {
+            bool prevValue = _isAtIntersection;
+            _isAtIntersection = value;
+            OnIsAtIntersectionChange(prevValue, value);
+        }
+    }
 
     public bool EncounteredCollidable
     {
@@ -128,6 +140,7 @@ class Player : Entity
     void FastMove_OnStarted(object? o, EventArgs e)
     {
         EncounteredCollidable = false;
+        IsAtIntersection = false;
     }
 
     void FastMove_OnStopped(object? o, EventArgs e)
@@ -139,12 +152,15 @@ class Player : Entity
     {
         _numbers = new();
         _inventory = Number.Empty;
+        _isAtIntersection = false;
+        _encounteredCollidable = false;
         FastMove.Reset();
     }
 
     protected override void OnPositionChanged(Point oldPosition, Point newPosition)
     {
         EncounteredCollidable = false;
+        IsAtIntersection = false;
         base.OnPositionChanged(oldPosition, newPosition);
     }
 
@@ -170,6 +186,13 @@ class Player : Entity
     {
         if (IsMovingFast && newValue == true)
             FastMove.Stop();
+    }
+
+    void OnIsAtIntersectionChange(bool prevValue, bool newValue)
+    {
+        if (IsMovingFast && newValue == true)
+            FastMove.Stop();
+
     }
     #endregion Methods
 

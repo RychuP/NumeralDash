@@ -5,6 +5,7 @@ using System.Linq;
 using NumeralDash.Rules;
 using SadConsole.Input;
 using System.Timers;
+using NumeralDash.Tiles;
 
 namespace NumeralDash.Consoles;
 
@@ -41,6 +42,7 @@ class Dungeon : Console
 
         // create a player
         Player = new Player(_map.PlayerStartPosition, this);
+        Player.PositionChanged += Player_OnPositionChanged;
         SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = Player });
 
         IsVisible = false;
@@ -237,7 +239,7 @@ class Dungeon : Console
     {
         base.Update(delta);
 
-        if (Player.IsMovingFast && !Player.EncounteredCollidable)
+        if (Player.IsMovingFast && !Player.EncounteredCollidable && !Player.IsAtIntersection)
         {
             bool success = TryMovePlayer(Player.FastMove.Direction);
             if (!success) Player.FastMove.Stop();
@@ -271,7 +273,19 @@ class Dungeon : Console
             // auto move stopping at road intersections
             else if (keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.LeftShift))
             {
-
+                if (direction != Direction.None)
+                {
+                    if (Player.IsMovingFast)
+                    {
+                        Player.FastMove.Direction = direction;
+                        return true;
+                    }
+                    else
+                    {
+                        Player.FastMove.Start(direction);
+                        return true;
+                    }
+                }
             }
 
             // auto move stopping at road and collidable intersections
@@ -310,10 +324,43 @@ class Dungeon : Console
     }
 
     // checks if none of the fast move keys are down and one of them was released this frame
-    bool FastMoveKeysReleased(Keyboard keyboard)
+    static bool FastMoveKeysReleased(Keyboard keyboard)
     {
         return !keyboard.IsKeyDown(Keys.LeftShift) && !keyboard.IsKeyDown(Keys.LeftControl) &&
             (keyboard.IsKeyReleased(Keys.LeftShift) || keyboard.IsKeyReleased(Keys.LeftControl));
+    }
+
+    void Player_OnPositionChanged(object? o, EventArgs e)
+    {
+        if (Player.IsMovingFast)
+        {
+            var playerLeft = Player.FastMove.Direction - 2;
+
+            // look for intersections at the new position in 2 directions: left and right
+            for (int i = 0; i <= 4; i += 4)
+            {
+                // get direction and initial tile
+                var direction = playerLeft + i;
+                var position = Player.Position;
+
+                while (true) 
+                {
+                    position += direction;
+                    Tile tile = _map.GetTile(position);
+
+                    // check if the test tile belongs to a road
+                    if (tile is Floor floor)
+                    {
+                        if (floor.Parent is Road)
+                        {
+                            Player.IsAtIntersection = true;
+                            return;
+                        }
+                    }
+                    else break;
+                }
+            }
+        }
     }
 
     void OnLevelChanged()
