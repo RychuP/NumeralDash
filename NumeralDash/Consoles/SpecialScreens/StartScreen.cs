@@ -4,7 +4,7 @@
     {
         public StartScreen(int width, int height) : base(width, height, "numeral", "dash")
         {
-            Print(0, "Collect all numbers scattered around the dungeon in the given order");
+            Print(0, "Collect all numbers scattered around the map in the given order");
             Print(2, "and leave before the time runs out.");
             Print(5, $"{Orange("Controls")}: {Green("Arrow Keys")} move, " +
                 $"{Green("F5")} toggle full screen, {Esc} pause.");

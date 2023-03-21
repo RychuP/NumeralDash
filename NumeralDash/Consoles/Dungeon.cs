@@ -214,7 +214,7 @@ class Dungeon : Console
                 // look for entities at the player's position
                 if (room.GetCollidableAt(tileCoord) is Entity e)
                 {
-                    // check if the player is not walking over a long, multicell number and prevent that type of collections
+                    // check if the player is walking over a long, multicell number and prevent that type of collections
                     if (e is Number n && !n.Coords.Contains(playerPrevPosition))
                     {
                         // player can collect the number
@@ -233,7 +233,7 @@ class Dungeon : Console
                         }
                         else
                         {
-                            Player.SetEncounteredCollidable();
+                            Player.EncounteredCollidable = true;
                         }
                     }
                 }
@@ -249,63 +249,83 @@ class Dungeon : Console
     {
         base.Update(delta);
 
-        if (Player.IsMovingFast)
+        if (Player.IsMovingFast && !Player.EncounteredCollidable)
         {
             bool success = TryMovePlayer(Player.FastMove.Direction);
-            if (!success) Player.StopFastMove();
+            if (!success) Player.FastMove.Stop();
         }
     }
 
-    public new void ProcessKeyboard(Keyboard keyboard)
+    public new bool ProcessKeyboard(Keyboard keyboard)
     {
-        // fast move with a left shift modifier
-        if (keyboard.HasKeysDown)
+        if (keyboard.HasKeysPressed)
         {
-            if (keyboard.IsKeyDown(Keys.LeftShift))
+            Direction direction = keyboard.GetDirection();
+
+            // auto move stopping only at collidables
+            if (keyboard.IsKeyDown(Keys.LeftShift) && !keyboard.IsKeyDown(Keys.LeftControl))
             {
-                if (keyboard.KeysDown.Count > 1)
+                if (direction != Direction.None)
                 {
                     if (Player.IsMovingFast)
                     {
-                        Player.FastMove.ChangeDirection(keyboard.GetDirectionFromKeysDown());
+                        Player.FastMove.Direction = direction;
+                        return true;
                     }
                     else
                     {
-                        if (Player.EncounteredCollidable)
-                        {
-                            var direction = keyboard.GetDirectionFromKeysDown();
-                            if (direction != Player.FastMove.Direction || (direction == Player.FastMove.Direction && Player.FastMove.IsReleased))
-                            {
-                                Player.StartFastMove(keyboard.GetDirectionFromKeysDown());
-                            }
-                            
-                        }
-                        else
-                        {
-                            Player.StartFastMove(keyboard.GetDirectionFromKeysDown());
-                        }
+                        Player.FastMove.Start(direction);
+                        return true;
                     }
+                }
+            }
+
+            // auto move stopping at road intersections
+            else if (keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.LeftShift))
+            {
+
+            }
+
+            // auto move stopping at road and collidable intersections
+            else if (keyboard.IsKeyDown(Keys.LeftControl) && keyboard.IsKeyDown(Keys.LeftShift))
+            {
+
+            }
+
+            // normal move by one tile without any modifiers
+            if (!Player.IsMovingFast)
+            {
+                if (direction != Direction.None && TryMovePlayer(direction))
+                    return true;
+            }
+
+            // check for fast move key releases
+            else
+            {
+                if (keyboard.HasKeysReleased() && FastMoveKeysReleased(keyboard))
+                {
+                    Player.FastMove.Stop();
+                    return true;
                 }
             }
         }
 
-        // normal move by one tile
-        if (keyboard.HasKeysPressed)
+        // check for fast move key releases
+        else if (keyboard.HasKeysReleased() && Player.IsMovingFast && FastMoveKeysReleased(keyboard))
         {
-            if ( (!Player.IsMovingFast && !Player.EncounteredCollidable) || (Player.EncounteredCollidable && !keyboard.IsKeyDown(Keys.LeftShift)) )
-                TryMovePlayer(keyboard.GetDirectionFromKeysPressed());
+            Player.FastMove.Stop();
+            return true;
         }
 
-        if (Player.EncounteredCollidable && keyboard.IsKeyReleased(Player.FastMove.Direction.ToKey()))
-        {
-            Player.FastMove.IsReleased = true;
-        }
+        // no meaningful key presses
+        return false;
+    }
 
-        // doesn't work
-        else if (Player.IsMovingFast && keyboard.IsKeyReleased(Keys.LeftShift))
-        {
-            Player.StopFastMove();
-        }
+    // checks if none of the fast move keys are down and one of them was released this frame
+    bool FastMoveKeysReleased(Keyboard keyboard)
+    {
+        return !keyboard.IsKeyDown(Keys.LeftShift) && !keyboard.IsKeyDown(Keys.LeftControl) &&
+            (keyboard.IsKeyReleased(Keys.LeftShift) || keyboard.IsKeyReleased(Keys.LeftControl));
     }
 
     #endregion

@@ -79,7 +79,7 @@ class GameManager : Console
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
         // full screen toggle regardless of what is being shown
-        if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.F5))
+        if (keyboard.IsKeyPressed(Keys.F5))
         {
             Game.Instance.ToggleFullScreen();
             return true;
@@ -122,19 +122,23 @@ class GameManager : Console
             }
         }
 
-        else if (keyboard.IsKeyPressed(Keys.Escape))
+        // game play handling
+        else if (_dungeon.IsVisible)
         {
-            _dungeon.Pause();
-            _pauseScreen.IsVisible = true;
-            return true;
+            // pause
+            if (keyboard.IsKeyPressed(Keys.Escape))
+            {
+                _dungeon.Pause();
+                _pauseScreen.IsVisible = true;
+                return true;
+            }
+
+            // player handling
+            else if (_dungeon.ProcessKeyboard(keyboard))
+                return true;
         }
 
-        // everything that happens during normal gameplay
-        else if (keyboard.HasKeysDown || keyboard.HasKeysPressed)
-        {
-            _dungeon.ProcessKeyboard(keyboard);
-        }
-
+        // no meaningful keyboard presses
         return base.ProcessKeyboard(keyboard);
     }
 

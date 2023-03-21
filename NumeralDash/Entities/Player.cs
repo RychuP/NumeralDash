@@ -10,24 +10,12 @@ class Player : Entity
 {
     List<Number> _numbers;
     Number _inventory;
-    FastMove _fastMove = new();
-    bool _encounteredCollidable;
     readonly Dungeon _dungeon;
+    bool _encounteredCollidable = false;
 
     public Number LastDrop { get; private set; } = Number.Empty;
 
-    public bool IsMovingFast { get; private set; }
-
-    public FastMove FastMove => _fastMove;
-
-    public bool EncounteredCollidable
-    {
-        get => _encounteredCollidable;
-        set
-        {
-            _encounteredCollidable = value;
-        }
-    }
+    public FastMove FastMove { get; init; } = new();
 
     public Point PrevPosition { get; private set; }
 
@@ -39,25 +27,23 @@ class Player : Entity
         _numbers = new();
         _dungeon = dungeon;
         _inventory = Number.Empty;
-        dungeon.LevelChanged += OnLevelChanged;
+        dungeon.LevelChanged += Dungeon_OnLevelChanged;
+        FastMove.Started += FastMove_OnStarted;
     }
 
-    #region Position Handling
-
-    public void StartFastMove(Direction d)
+    public bool EncounteredCollidable
     {
-        if (d != Direction.None)
+        get => _encounteredCollidable;
+        set
         {
-            IsMovingFast = true;
-            FastMove.ChangeDirection(d);
+            _encounteredCollidable = value;
+            OnEncounteredCollidableChanged(value);
         }
     }
 
-    public void StopFastMove()
-    {
-        IsMovingFast = false;
-        FastMove.ChangeDirection();
-    }
+    #region Position Handling
+    public bool IsMovingFast =>
+        FastMove.IsOn;
 
     /// <summary>
     /// Adds direction to the player's position.
@@ -67,7 +53,7 @@ class Player : Entity
     {
         PrevPosition = Position;
         Position += d;
-        _encounteredCollidable = false;
+        EncounteredCollidable = false;
     }
 
     /// <summary>
@@ -90,13 +76,6 @@ class Player : Entity
     #endregion
 
     #region Number Handling
-
-    public void SetEncounteredCollidable()
-    {
-        _encounteredCollidable = true;
-        IsMovingFast = false;
-    }
-
     /// <summary>
     /// Places the number in the player's inventory or collects it if it matches Rule.NextNumber.
     /// </summary>
@@ -109,7 +88,7 @@ class Player : Entity
             throw new ArgumentException("Trying to collect a duplicate number.");
         }
 
-        SetEncounteredCollidable();
+        EncounteredCollidable = true;
 
         // check if the number can be collected and placed in the numbers list
         if (_dungeon.Rule.NextNumber == n)
@@ -153,6 +132,16 @@ class Player : Entity
 
     #region Events
 
+    void FastMove_OnStarted(object? o, EventArgs e)
+    {
+        EncounteredCollidable = false;
+    }
+
+    void FastMove_OnStopped(object? o, EventArgs e)
+    {
+        
+    }
+
     /// <summary>
     /// Raises the InventoryChanged event.
     /// </summary>
@@ -181,30 +170,76 @@ class Player : Entity
     /// </summary>
     public event Action<Number, int>? DepositMade;
 
-    void OnLevelChanged(ICollectionRule rule, int level, string[] s)
+    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
     {
         _numbers = new();
         _inventory = Number.Empty;
-        StopFastMove();
+        FastMove.Reset();
     }
 
+    void OnEncounteredCollidableChanged(bool newValue)
+    {
+        if (IsMovingFast && newValue == true)
+            FastMove.Stop();
+    }
     #endregion
 }
 
 class FastMove
 {
-    public void ChangeDirection()
+    Direction _direction = Direction.None;
+    bool _isOn = false;
+
+    public void Reset() =>
+        Stop();
+
+    public void Start(Direction direction)
     {
-        ChangeDirection(Direction.None);
+        if (direction == Direction.None)
+            throw new ArgumentException("Invalid start direction.");
+        Direction = direction;
+        IsOn = true;
     }
 
-    public void ChangeDirection(Direction d)
+    public void Stop()
     {
-        Direction = d;
-        IsReleased = false;
+        Direction = Direction.None;
+        IsOn = false;
     }
 
-    public Direction Direction { get; set; }
+    public void ChangeDirection(Direction direction) =>
+        Direction = direction;
 
-    public bool IsReleased { get; set; }
+    public Direction Direction
+    {
+        get => _direction;
+        set
+        {
+            if (value != Direction.None && !value.IsCardinal())
+                throw new ArgumentException("Invalid direction.");
+            _direction = value;
+        }
+    }
+
+    public bool IsOn
+    {
+        get => _isOn;
+        set
+        {
+            bool prevValue = _isOn;
+            _isOn = value;
+            OnIsOnChanged(prevValue, value);
+        }
+    }
+
+    void OnIsOnChanged(bool prevValue, bool newValue)
+    {
+        if (prevValue == true && newValue == false)
+            Stopped?.Invoke(this, EventArgs.Empty);
+        else if (prevValue == false && newValue == true)
+            Started?.Invoke(this, EventArgs.Empty);
+    }
+
+    public event EventHandler? Started;
+    public event EventHandler? Stopped;
 }

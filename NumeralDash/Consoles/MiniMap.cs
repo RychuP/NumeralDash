@@ -22,6 +22,12 @@ class MiniMap : Console
         dungeon.GameOver += OnGameOver;
     }
 
+    public override void Update(TimeSpan delta)
+    {
+        Surface.Print(0, 0, $"{_dungeon.Player.EncounteredCollidable} ");
+        base.Update(delta);
+    }
+
     void Display()
     {
         Surface.Clear();
