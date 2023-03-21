@@ -12,18 +12,22 @@ namespace NumeralDash.Consoles;
 class Dungeon : Console
 {
     #region Fields
-    //const int levelTime = 0 * 60 + 5;
+    // timer
     const int LevelTime = 5 * 60 + 0;               // time in seconds for the initial level
     const int TimeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
-
-    // fields
     readonly Timer _timer = new(1000) { AutoReset = true };
     readonly TimeSpan _oneSecond = new(0, 0, 1);
     TimeSpan _totalTimePlayed = TimeSpan.Zero;
-    Renderer _entityManager;
     TimeSpan _time;
+
+    // level
+    Renderer _entityManager;
     int _level = 0;
     Map _map;
+
+    // movement modifiers
+    bool _shiftIsDown = false;
+    bool _ctrlIsDown = false;
     #endregion Fields
 
     #region Constructors
@@ -239,11 +243,28 @@ class Dungeon : Console
     {
         base.Update(delta);
 
-        if (Player.IsMovingFast && !Player.EncounteredCollidable && !Player.IsAtIntersection)
+        if (Player.IsMovingFast)
         {
-            bool success = TryMovePlayer(Player.FastMove.Direction);
-            if (!success) Player.FastMove.Stop();
+            // stop player when encountered collectible or fast move stop modifier conditions are met
+            if (Player.EncounteredCollidable || 
+                (_ctrlIsDown && Player.IsAtIntersection) ||
+                (_shiftIsDown && Player.IsAbeamCollidable))
+                    Player.FastMove.Stop();
+
+            // try moving player in the fast move direction
+            else if (!TryMovePlayer(Player.FastMove.Direction))
+                Player.FastMove.Stop();
         }
+            
+                
+                
+        //        && !Player.EncounteredCollidable && 
+        //    (_ctrlIsDown && !Player.IsAtIntersection) &&
+        //    (_shiftIsDown && !Player.IsAbeamCollectible))
+        //{
+        //    if (!TryMovePlayer(Player.FastMove.Direction))
+        //        Player.FastMove.Stop();
+        //}
     }
 
     public new bool ProcessKeyboard(Keyboard keyboard)
@@ -251,9 +272,11 @@ class Dungeon : Console
         if (keyboard.HasKeysPressed)
         {
             Direction direction = keyboard.GetDirection();
+            _shiftIsDown = keyboard.IsKeyDown(Keys.LeftShift);
+            _ctrlIsDown = keyboard.IsKeyDown(Keys.LeftControl);
 
-            // auto move stopping only at collidables
-            if (keyboard.IsKeyDown(Keys.LeftShift) && !keyboard.IsKeyDown(Keys.LeftControl))
+            // fast move modifiers
+            if (_shiftIsDown || _ctrlIsDown)
             {
                 if (direction != Direction.None)
                 {
@@ -268,30 +291,6 @@ class Dungeon : Console
                         return true;
                     }
                 }
-            }
-
-            // auto move stopping at road intersections
-            else if (keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.LeftShift))
-            {
-                if (direction != Direction.None)
-                {
-                    if (Player.IsMovingFast)
-                    {
-                        Player.FastMove.Direction = direction;
-                        return true;
-                    }
-                    else
-                    {
-                        Player.FastMove.Start(direction);
-                        return true;
-                    }
-                }
-            }
-
-            // auto move stopping at road and collidable intersections
-            else if (keyboard.IsKeyDown(Keys.LeftControl) && keyboard.IsKeyDown(Keys.LeftShift))
-            {
-
             }
 
             // normal move by one tile without any modifiers
@@ -324,9 +323,9 @@ class Dungeon : Console
     }
 
     // checks if none of the fast move keys are down and one of them was released this frame
-    static bool FastMoveKeysReleased(Keyboard keyboard)
+    bool FastMoveKeysReleased(Keyboard keyboard)
     {
-        return !keyboard.IsKeyDown(Keys.LeftShift) && !keyboard.IsKeyDown(Keys.LeftControl) &&
+        return !_shiftIsDown && !_ctrlIsDown &&
             (keyboard.IsKeyReleased(Keys.LeftShift) || keyboard.IsKeyReleased(Keys.LeftControl));
     }
 
@@ -348,14 +347,16 @@ class Dungeon : Console
                     position += direction;
                     Tile tile = _map.GetTile(position);
 
-                    // check if the test tile belongs to a road
                     if (tile is Floor floor)
                     {
                         if (floor.Parent is Road)
-                        {
                             Player.IsAtIntersection = true;
+
+                        else if (floor.Parent is Room room && room.GetCollidableAt(position) is not null)
+                            Player.IsAbeamCollidable = true;
+
+                        if (Player.IsAtIntersection && Player.IsAbeamCollidable)
                             return;
-                        }
                     }
                     else break;
                 }

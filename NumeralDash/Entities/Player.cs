@@ -12,8 +12,6 @@ class Player : Entity
     List<Number> _numbers;
     Number _inventory;
     readonly Dungeon _dungeon;
-    bool _encounteredCollidable = false;
-    bool _isAtIntersection = false;
     #endregion Fields
 
     #region Constructors
@@ -25,7 +23,7 @@ class Player : Entity
         _dungeon = dungeon;
         _inventory = Number.Empty;
         dungeon.LevelChanged += Dungeon_OnLevelChanged;
-        FastMove.Started += FastMove_OnStarted;
+        FastMove.Stopped += FastMove_OnStopped;
     }
     #endregion Constructors
 
@@ -34,41 +32,20 @@ class Player : Entity
 
     public FastMove FastMove { get; init; } = new();
 
+    // there is a road to the player's left or right a distance away
+    public bool IsAtIntersection { get; set; } = false;
+
+    // there is a collidable to the player's left or right a distance away
+    public bool IsAbeamCollidable { get; set; } = false;
+
+    // the new tile just entered contained a collidable
+    public bool EncounteredCollidable { get; set; } = false;
+
     public bool IsMovingFast =>
         FastMove.IsOn;
-
-    public bool IsAtIntersection
-    {
-        get => _isAtIntersection;
-        set
-        {
-            bool prevValue = _isAtIntersection;
-            _isAtIntersection = value;
-            OnIsAtIntersectionChange(prevValue, value);
-        }
-    }
-
-    public bool EncounteredCollidable
-    {
-        get => _encounteredCollidable;
-        set
-        {
-            _encounteredCollidable = value;
-            OnEncounteredCollidableChanged(value);
-        }
-    }
     #endregion Properties
 
     #region Methods
-    /// <summary>
-    /// Adds direction to the player's position.
-    /// </summary>
-    /// <param name="d"></param>
-    public void Move(Direction d)
-    {
-        Position += d;
-    }
-
     /// <summary>
     /// Returns the sum of the player's current position and the given direction.
     /// </summary>
@@ -137,30 +114,27 @@ class Player : Entity
         OnDepositMade();
     }
 
-    void FastMove_OnStarted(object? o, EventArgs e)
+    void ResetPositionData()
     {
         EncounteredCollidable = false;
         IsAtIntersection = false;
+        IsAbeamCollidable = false;
     }
 
-    void FastMove_OnStopped(object? o, EventArgs e)
-    {
-        
-    }
+    void FastMove_OnStopped(object? o, EventArgs e) =>
+        ResetPositionData();
 
     void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
     {
         _numbers = new();
         _inventory = Number.Empty;
-        _isAtIntersection = false;
-        _encounteredCollidable = false;
+        ResetPositionData();
         FastMove.Reset();
     }
 
     protected override void OnPositionChanged(Point oldPosition, Point newPosition)
     {
-        EncounteredCollidable = false;
-        IsAtIntersection = false;
+        ResetPositionData();
         base.OnPositionChanged(oldPosition, newPosition);
     }
 
@@ -180,19 +154,6 @@ class Player : Entity
         var lastNumber = _numbers.Last();
         var totalNumbersCollected = _numbers.Count;
         DepositMade?.Invoke(lastNumber, totalNumbersCollected);
-    }
-
-    void OnEncounteredCollidableChanged(bool newValue)
-    {
-        if (IsMovingFast && newValue == true)
-            FastMove.Stop();
-    }
-
-    void OnIsAtIntersectionChange(bool prevValue, bool newValue)
-    {
-        if (IsMovingFast && newValue == true)
-            FastMove.Stop();
-
     }
     #endregion Methods
 
