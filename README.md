@@ -22,7 +22,7 @@ SadConsole v9.2.2
 <p align="center" style="margin-bottom: 0px !important;">
   <img width="750" src="/ScreenShots/title_screen.png" alt="Title Screen" align="center">
   <br><br>
-  <img width="750" src="numeral_dash.gif" alt="Gameplay" align="center">
+  <img width="750" src="/ScreenShots/numeral_dash.gif" alt="Gameplay" align="center">
   <br><br>
   <img width="750" src="/ScreenShots/gameplay.png" alt="Gameplay" align="center">
 </p>
