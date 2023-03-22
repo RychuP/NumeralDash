@@ -3,10 +3,10 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <ApplicationIcon />
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
     <StartupObject>NumeralDash.Program</StartupObject>
 	<Nullable>enable</Nullable>
-	<Version>0.6.5</Version>
+	<Version>0.7.4</Version>
 	<Authors>Ryszard Pyka</Authors>
 	<Description>A small game testing your spacial memory. Collect all numbers scattered in a dungeon and leave before the time runs out.</Description>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -14,7 +14,7 @@
 	<PackageTags>SadConsole, Game</PackageTags>
 	<PackageProjectUrl>https://github.com/RychuP/NumeralDash</PackageProjectUrl>
 	<Copyright>Ryszard Pyka</Copyright>
-	<PackageReleaseNotes>Added Error Screen. Improved Keyboard Processing. Reworked GameManager constructor. Fixed console sizes. Various other small bug fixes.</PackageReleaseNotes>
+	<PackageReleaseNotes>Improved keyboard handling. Refactored several classes. Added sounds.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,23 +22,21 @@
   </ItemGroup>
 	
   <ItemGroup>
-    <None Update="Resources\Fonts\C64.font">
+    <Content Include="Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Fonts\DESTRUCX.TDF">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Fonts\Yayo_c64.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    </Content>
   </ItemGroup>
 	
   <ItemGroup>
-    <Folder Include="Resources\Sounds\" />
+    <None Remove="Icon.bmp" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Icon.bmp" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Content Include="Icon.ico" />
   </ItemGroup>
 
 </Project>

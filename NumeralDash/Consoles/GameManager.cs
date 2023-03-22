@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using SadConsole.Input;
+﻿using SadConsole.Input;
 using NumeralDash.World;
 using NumeralDash.Consoles.SpecialScreens;
 
@@ -26,6 +25,8 @@ class GameManager : Console
     readonly GameOverScreen _gameOverScreen;
     readonly ErrorScreen _errorScreen;
     readonly PauseScreen _pauseScreen;
+    readonly LevelCompleteAnimation _levelCompleteAnimation;
+    readonly GameStartAnimation _gameStartAnimation;
 
     public GameManager(int width, int height) : base(width, height)
     {
@@ -34,10 +35,11 @@ class GameManager : Console
         // dungeon
         Point dSize = (width - SideWindowWidth - 3, height - 2);
         Point dBorderPos = (0, 0);
-        _dungeon = new(dSize.X / 2 - 2, dSize.Y) {
+        _dungeon = new(dSize.X / 2 - 1, dSize.Y) {
             Position = (dBorderPos.X + 1, dBorderPos.Y + 1),
         };
         _dungeon.GameOver += Dungeon_OnGameOver;
+        _dungeon.LevelCompleted += Dungeon_OnLevelCompleted;
         _dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
         AddChild(_dungeon, dSize, dBorderPos);
 
@@ -63,7 +65,14 @@ class GameManager : Console
         _gameOverScreen = new(sWidth, Height);
         _errorScreen = new(sWidth, Height);
         _pauseScreen = new(sWidth, Height);
-        Children.Add(_startScreen, _gameOverScreen, _errorScreen, _pauseScreen);
+        _levelCompleteAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
+        { Position = _dungeon.Position };
+        _levelCompleteAnimation.Finished += LevelCompleteAnimation_OnFinished;
+        _gameStartAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
+        { Position = _dungeon.Position };
+        _gameStartAnimation.Finished += GameStartAnimation_OnFinished;
+        Children.Add(_startScreen, _gameOverScreen, _errorScreen, _pauseScreen, 
+            _levelCompleteAnimation, _gameStartAnimation);
         
         // connect borders
         this.ConnectLines();
@@ -93,7 +102,8 @@ class GameManager : Console
                 if (keyboard.IsKeyPressed(Keys.Enter))
                 {
                     if (_startScreen.IsVisible)
-                        ShowDungeon(_startScreen, _dungeon.Start);
+                        //ShowDungeon(_startScreen, _dungeon.Start);
+                        StartGame();
 
                     else if (_gameOverScreen.IsVisible)
                         ShowDungeon(_gameOverScreen, _dungeon.Restart);
@@ -123,7 +133,7 @@ class GameManager : Console
         }
 
         // game play handling
-        else if (_dungeon.IsVisible)
+        else if (_dungeon.IsVisible && !_levelCompleteAnimation.IsVisible)
         {
             // pause
             if (keyboard.IsKeyPressed(Keys.Escape))
@@ -142,17 +152,26 @@ class GameManager : Console
         return base.ProcessKeyboard(keyboard);
     }
 
-    void ShowStartScreen(SpecialScreen s)
+    void ShowStartScreen(SpecialScreen prevScreen)
     {
-        s.IsVisible = false;
+        prevScreen.IsVisible = false;
         _startScreen.IsVisible = true;
     }
 
-    void ShowDungeon(SpecialScreen s, Action act)
+    void ShowDungeon(SpecialScreen currentScreen, Action act)
     {
-        s.IsVisible = false;
+        currentScreen.IsVisible = false;
         _dungeon.IsVisible = true;
         act();
+    }
+
+    void StartGame()
+    {
+        if (!_startScreen.IsVisible)
+            throw new InvalidOperationException("Starting a game with the Start Screen not visible.");
+        _dungeon.PrepareToStart();
+        _gameStartAnimation.IsVisible = true;
+        _gameStartAnimation.Play(_dungeon, _startScreen);
     }
 
     void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
@@ -170,6 +189,25 @@ class GameManager : Console
 
     void Dungeon_OnMapFailedToGenerate(AttemptCounters failedAttempts)
     {
-        _errorScreen.IsVisible = true;
+        //_errorScreen.IsVisible = true;
+        _dungeon.Retry();
+    }
+
+    void Dungeon_OnLevelCompleted(object? o, EventArgs e)
+    {
+        _levelCompleteAnimation.IsVisible = true;
+        _levelCompleteAnimation.Play(_dungeon);
+    }
+
+    void LevelCompleteAnimation_OnFinished(object? o, EventArgs e)
+    {
+        _levelCompleteAnimation.IsVisible = false;
+        _dungeon.StartAfterAnimation();
+    }
+
+    void GameStartAnimation_OnFinished(object? o, EventArgs? e)
+    {
+        _gameStartAnimation.IsVisible = false;
+        _dungeon.StartAfterAnimation();
     }
 }

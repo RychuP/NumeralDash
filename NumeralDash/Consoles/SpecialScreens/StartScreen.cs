@@ -8,8 +8,8 @@
             Print(2, "and leave before the time runs out.");
             Print(5, $"{Orange("Controls")}: {Green("Arrow Keys")} move, " +
                 $"{Green("F5")} toggle full screen, {Esc} pause.");
-            Print(7, $"{Orange("Auto Move")}: {Green("Left Shift")} as far as possible, " +
-                $"{Green("Ctrl")} until the next intersection.");
+            Print(7, $"{Orange("Auto Move (hold)")}: {Green("Left Shift")} stop at numbers, " +
+                $"{Green("Ctrl")} stop at road intersections.");
             Print(10, $"Press {Enter} to start.");
             IsVisible = true;
         }

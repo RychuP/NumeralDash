@@ -21,6 +21,7 @@ class Dungeon : Console
     TimeSpan _time;
 
     // level
+    bool _levelComplete = false;
     Renderer _entityManager;
     int _level = 0;
     Map _map;
@@ -70,10 +71,25 @@ class Dungeon : Console
     public void Start()
     {
         _level = 0;
+        _levelComplete = false;
         ChangeLevel();
+        StartTimer();
+        OnLevelChanged();
     }
 
-    void ChangeLevel()
+    public void StartAfterAnimation()
+    {
+        _levelComplete = false;
+        StartTimer();
+        OnLevelChanged();
+    }
+
+    public void PrepareToStart()
+    {
+        _level = 0;
+    }
+
+    public void ChangeLevel()
     {
         try
         {
@@ -81,12 +97,12 @@ class Dungeon : Console
             ChangeMap();
             ChangeRule();
             SpawnEntities();
-            StartTimer();
-            OnLevelChanged();
+            Surface.View = Surface.View.WithCenter(Player.AbsolutePosition);
         }
         catch (MapGenerationException e)
         {
             IsVisible = false;
+            _level--;
             OnMapFailedToGenerate(e.FailedAttempts);
         }
     }
@@ -199,6 +215,7 @@ class Dungeon : Console
         {
             var prevPosition = Player.Position;
             Player.Position = newPosition;
+            Sounds.Step.Play();
 
             // check if the tile belongs to a room
             if (room is not null)
@@ -215,20 +232,16 @@ class Dungeon : Console
                         room.RemoveNumber(n);
                         Number drop = Player.PickUp(n);
                         room.PlaceNumber(drop, n.Position);
+                        Sounds.PickUp.Play();
                     }
 
                     // check if the level is completed
                     else if (e is Exit)
                     {
                         if (Rule.NextNumber == Number.Finished)
-                        {
-                            _timer.Stop();
-                            ChangeLevel();
-                        }
+                            OnLevelCompleted();
                         else
-                        {
                             Player.EncounteredCollidable = true;
-                        }
                     }
                 }
             }
@@ -241,6 +254,7 @@ class Dungeon : Console
 
     public override void Update(TimeSpan delta)
     {
+        if (_levelComplete) return;
         base.Update(delta);
 
         if (Player.IsMovingFast)
@@ -255,16 +269,6 @@ class Dungeon : Console
             else if (!TryMovePlayer(Player.FastMove.Direction))
                 Player.FastMove.Stop();
         }
-            
-                
-                
-        //        && !Player.EncounteredCollidable && 
-        //    (_ctrlIsDown && !Player.IsAtIntersection) &&
-        //    (_shiftIsDown && !Player.IsAbeamCollectible))
-        //{
-        //    if (!TryMovePlayer(Player.FastMove.Direction))
-        //        Player.FastMove.Stop();
-        //}
     }
 
     public new bool ProcessKeyboard(Keyboard keyboard)
@@ -364,6 +368,13 @@ class Dungeon : Console
         }
     }
 
+    void OnLevelCompleted()
+    {
+        _timer.Stop();
+        _levelComplete = true;
+        LevelCompleted?.Invoke(this, EventArgs.Empty);
+    }
+
     void OnLevelChanged()
     {
         var mapGenerationInfo = new string[]
@@ -407,6 +418,6 @@ class Dungeon : Console
     public event Action<int, TimeSpan>? GameOver;
     public event Action<AttemptCounters>? MapFailedToGenerate;
     public event Action<ICollectionRule, int, string[]>? LevelChanged;
-    public event Action? PlayerMoved;
+    public event EventHandler? LevelCompleted;
     #endregion Events
 }

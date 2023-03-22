@@ -20,7 +20,6 @@ public static class Extensions
     };
 }
 
-
 public static class SurfaceExtensions
 {
     public static void PrintCenter(this ICellSurface c, int y, string text) =>
@@ -32,24 +31,37 @@ public static class SurfaceExtensions
         int x = (c.Width - text.Length) / 2;
         c.Print(x, y, text);
     }
+
+    /// <summary>
+    /// Draws a rectangle around the perimeter of the <see cref="ICellSurface.Area"/>.
+    /// </summary>
+    /// <param name="fg">Foreground <see cref="Color"/>.</param>
+    /// <param name="glyph">Glyph to use as an outline.</param>
+    public static void DrawOutline(this ICellSurface cellSurface, Color? fg = null, Color? bg = null, int? glyph = null) =>
+        cellSurface.DrawRectangle(cellSurface.Area, fg, bg, glyph);
+
+    /// <summary>
+    /// Draws a rectangle outline using either <see cref="ICellSurface.ConnectedLineThin"/> or the given glyph.
+    /// </summary>
+    /// <param name="rectangle"><see cref="Rectangle"/> to draw.</param>
+    /// <param name="glyph">Glyph to use as an outline.</param>
+    /// <param name="fg">Foreground <see cref="Color"/>.</param>
+    public static void DrawRectangle(this ICellSurface cellSurface, Rectangle rectangle, 
+        Color? fg = null, Color? bg = null, int? glyph = null)
+    {
+        var style = (glyph.HasValue) ?
+            ShapeParameters.CreateStyledBox(ICellSurface.CreateLine(glyph.Value),
+                new ColoredGlyph(fg ?? Color.White, bg ?? Color.Transparent)) :
+            ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
+                new ColoredGlyph(fg ?? Color.White, bg ?? Color.Transparent));
+        cellSurface.DrawBox(rectangle, style);
+    }
 }
 
 public static class KeyboardExtensions
 {
     public static bool HasKeysReleased(this Keyboard k) =>
         k.KeysReleased.Count > 0;
-
-    public static bool HasDirectionKeyDown(this Keyboard k) =>
-        k.HasKeysDown && 
-        (k.IsKeyDown(Keys.Down) || k.IsKeyDown(Keys.Up) ||
-        k.IsKeyDown(Keys.Left) || k.IsKeyDown(Keys.Right));
-
-    public static Direction GetDirFromKeysDown(this Keyboard k) =>
-        k.IsKeyDown(Keys.Left) ? Direction.Left :
-        k.IsKeyDown(Keys.Right) ? Direction.Right :
-        k.IsKeyDown(Keys.Up) ? Direction.Up :
-        k.IsKeyDown(Keys.Down) ? Direction.Down :
-        Direction.None;
 
     public static Direction GetDirection(this Keyboard k) =>
         k.IsKeyPressed(Keys.Left) ? Direction.Left :

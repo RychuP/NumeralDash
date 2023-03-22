@@ -8,7 +8,7 @@ namespace NumeralDash;
 
 class Program
 {
-    static int Width = 120, Height;
+    const int Width = 120, Height = 34;
     static readonly bool s_startFullScreen = false;
 
     /// <summary>
@@ -16,16 +16,10 @@ class Program
     /// </summary>
     public const float MinimumColorBrightness = 0.5f;
 
-    public const string Version = "0.6.5";
+    public const string Version = "0.7.4";
 
     static void Main(string[] args)
     {
-        // calculate the cell count for the Game.Height which will fill the full screen with the given Width and font size
-        Point fontSize = (8, 16);
-        int pixelWidth = Width * fontSize.X,
-            pixelHeight = pixelWidth * 9 / 16;
-        Height = (int)Math.Round((decimal)(pixelHeight / fontSize.Y)) + 1;
-
         // set title and resize mode
         Settings.WindowTitle = "Numeral Dash";
         Settings.ResizeMode = Settings.WindowResizeOptions.Fit;

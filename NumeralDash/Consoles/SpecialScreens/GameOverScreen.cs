@@ -4,7 +4,7 @@ class GameOverScreen : SpecialScreen
 {
     public GameOverScreen(int width, int height) : base(width, height, "game", "over")
     {
-        Print(6, $"Press {Enter} to try again...");
+        Print(6, $"Press {Enter} to try again.");
     }
 
     public void DisplayStats(int level, TimeSpan timePlayed)
