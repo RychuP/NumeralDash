@@ -18,12 +18,6 @@ SadConsole v9.2.2
 
 ## Screenshots:
 
-![screenshot](/ScreenShots/title_screen.png)
-
-![screenshot](/ScreenShots/numeraldash.gif)
-
-![screenshot](/ScreenShots/gameplay.png)
-
 <p align="center" style="margin-bottom: 0px !important;">
   <img width="750" src="/ScreenShots/title_screen.png" alt="Title Screen" align="center">
   <br><br>
