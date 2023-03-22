@@ -68,6 +68,9 @@ class Dungeon : Console
     public void Retry() =>
         ChangeLevel();
 
+    public void Debug() =>
+        OnGameOver();
+
     public void Start()
     {
         _level = 0;

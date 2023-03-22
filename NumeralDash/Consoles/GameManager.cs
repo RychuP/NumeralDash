@@ -27,6 +27,7 @@ class GameManager : Console
     readonly PauseScreen _pauseScreen;
     readonly LevelCompleteAnimation _levelCompleteAnimation;
     readonly GameStartAnimation _gameStartAnimation;
+    readonly GameOverAnimation _gameOverAnimation;
 
     public GameManager(int width, int height) : base(width, height)
     {
@@ -65,14 +66,21 @@ class GameManager : Console
         _gameOverScreen = new(sWidth, Height);
         _errorScreen = new(sWidth, Height);
         _pauseScreen = new(sWidth, Height);
+        Children.Add(_startScreen, _gameOverScreen, _errorScreen, _pauseScreen);
+
+        // animations
         _levelCompleteAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
         { Position = _dungeon.Position };
         _levelCompleteAnimation.Finished += LevelCompleteAnimation_OnFinished;
         _gameStartAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
         { Position = _dungeon.Position };
         _gameStartAnimation.Finished += GameStartAnimation_OnFinished;
-        Children.Add(_startScreen, _gameOverScreen, _errorScreen, _pauseScreen, 
-            _levelCompleteAnimation, _gameStartAnimation);
+        _gameOverAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
+        { Position = _dungeon.Position };
+        _gameOverAnimation.Finished += GameOverAnimation_OnFinished;
+
+        // add all children
+        Children.Add(_levelCompleteAnimation, _gameStartAnimation);
         
         // connect borders
         this.ConnectLines();
@@ -92,6 +100,11 @@ class GameManager : Console
         {
             Game.Instance.ToggleFullScreen();
             return true;
+        }
+
+        if (keyboard.IsKeyPressed(Keys.F1) && _dungeon.IsVisible)
+        {
+            _dungeon.Debug();
         }
 
         // keyboard handling when special screens are being shown
@@ -176,6 +189,7 @@ class GameManager : Console
 
     void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
     {
+        _dungeon.IsVisible = false;
         _gameOverScreen.DisplayStats(level, timePlayed);
         _miniMap.ShowProgramVersion();
     }
@@ -209,5 +223,10 @@ class GameManager : Console
     {
         _gameStartAnimation.IsVisible = false;
         _dungeon.StartAfterAnimation();
+    }
+
+    void GameOverAnimation_OnFinished(Object? o, EventArgs? e)
+    {
+        
     }
 }

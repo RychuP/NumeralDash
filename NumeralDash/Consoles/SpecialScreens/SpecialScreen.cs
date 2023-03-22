@@ -25,12 +25,12 @@ class SpecialScreen : ScreenSurface
         $"[c:r f:{color}]{text}[c:undo]";
 
     static protected string Green(object text) =>
-        Recolor((string)text, "lightgreen");
+        Recolor(text?.ToString() ?? "", "lightgreen");
 
     static protected string Orange(object text) =>
-        Recolor((string)text, "orange");
+        Recolor(text?.ToString() ?? "", "orange");
 
     static protected string Violet(object text) =>
-        Recolor((string)text, "violet");
+        Recolor(text?.ToString() ?? "", "violet");
 
 }
