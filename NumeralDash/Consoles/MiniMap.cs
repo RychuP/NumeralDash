@@ -90,6 +90,8 @@ class MiniMap : Console
     public void ShowProgramVersion()
     {
         Surface.Clear();
-        Print(Height / 2, $"Version {Program.Version}");
+        Print(2, $"Version {Program.Version}");
+        Print(6, "Made with");
+        Print(8, "SadConsole 9.2.2");
     }
 }

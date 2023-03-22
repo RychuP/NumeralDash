@@ -23,11 +23,10 @@ class GameManager : Console
     // other screens
     readonly StartScreen _startScreen;
     readonly GameOverScreen _gameOverScreen;
-    readonly ErrorScreen _errorScreen;
     readonly PauseScreen _pauseScreen;
-    readonly LevelCompleteAnimation _levelCompleteAnimation;
-    readonly GameStartAnimation _gameStartAnimation;
-    readonly GameOverAnimation _gameOverAnimation;
+
+    // animation
+    readonly Transition _transition;
 
     public GameManager(int width, int height) : base(width, height)
     {
@@ -36,9 +35,8 @@ class GameManager : Console
         // dungeon
         Point dSize = (width - SideWindowWidth - 3, height - 2);
         Point dBorderPos = (0, 0);
-        _dungeon = new(dSize.X / 2 - 1, dSize.Y) {
-            Position = (dBorderPos.X + 1, dBorderPos.Y + 1),
-        };
+        _dungeon = new(dSize.X / 2 - 1, dSize.Y);
+        _dungeon.Position = (dBorderPos.X + 1, dBorderPos.Y + 1);
         _dungeon.GameOver += Dungeon_OnGameOver;
         _dungeon.LevelCompleted += Dungeon_OnLevelCompleted;
         _dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
@@ -47,40 +45,27 @@ class GameManager : Console
         // side window
         Point swSize = (SideWindowWidth, SideWindowHeight);
         Point swBorderPos = (dSize.X + 1, 0);
-        _sideWindow = new(swSize.X, swSize.Y, _dungeon) { 
-            Position = (swBorderPos.X + 1, swBorderPos.Y + 1) 
-        };
+        _sideWindow = new(swSize.X, swSize.Y, _dungeon);
+        _sideWindow.Position = (swBorderPos.X + 1, swBorderPos.Y + 1);
         AddChild(_sideWindow, swSize, swBorderPos);
 
         // mini map
         Point mmSize = (SideWindowWidth, height - SideWindowHeight - 3);
         Point mmBorderPos = (swBorderPos.X, SideWindowHeight + 1);
-        _miniMap = new(mmSize.X, mmSize.Y, _dungeon) {
-            Position = (mmBorderPos.X + 1, mmBorderPos.Y + 1)
-        };
+        _miniMap = new(mmSize.X, mmSize.Y, _dungeon);
+        _miniMap.Position = (mmBorderPos.X + 1, mmBorderPos.Y + 1);
         AddChild(_miniMap, mmSize, mmBorderPos);
 
         // special screens
         int sWidth = Width - SideWindowWidth - 1;
         _startScreen = new(sWidth, Height);
         _gameOverScreen = new(sWidth, Height);
-        _errorScreen = new(sWidth, Height);
         _pauseScreen = new(sWidth, Height);
-        Children.Add(_startScreen, _gameOverScreen, _errorScreen, _pauseScreen);
+        Children.Add(_startScreen, _gameOverScreen, _pauseScreen);
 
-        // animations
-        _levelCompleteAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
-        { Position = _dungeon.Position };
-        _levelCompleteAnimation.Finished += LevelCompleteAnimation_OnFinished;
-        _gameStartAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
-        { Position = _dungeon.Position };
-        _gameStartAnimation.Finished += GameStartAnimation_OnFinished;
-        _gameOverAnimation = new(_dungeon.Surface.View.Width, _dungeon.Surface.View.Height)
-        { Position = _dungeon.Position };
-        _gameOverAnimation.Finished += GameOverAnimation_OnFinished;
-
-        // add all children
-        Children.Add(_levelCompleteAnimation, _gameStartAnimation);
+        // animation
+        _transition = new(_dungeon);
+        Children.Add(_transition);
         
         // connect borders
         this.ConnectLines();
@@ -102,27 +87,23 @@ class GameManager : Console
             return true;
         }
 
-        //if (keyboard.IsKeyPressed(Keys.F1) && _dungeon.IsVisible)
-        //{
-        //    _dungeon.Debug();
-        //}
+        if (keyboard.IsKeyPressed(Keys.F1) && _dungeon.IsVisible)
+        {
+            _dungeon.Debug();
+        }
 
         // keyboard handling when special screens are being shown
-        else if (_startScreen.IsVisible || _gameOverScreen.IsVisible || _errorScreen.IsVisible || _pauseScreen.IsVisible)
+        else if (_startScreen.IsVisible || _gameOverScreen.IsVisible || _pauseScreen.IsVisible)
         {
             if (keyboard.HasKeysPressed)
             {
                 if (keyboard.IsKeyPressed(Keys.Enter))
                 {
                     if (_startScreen.IsVisible)
-                        //ShowDungeon(_startScreen, _dungeon.Start);
                         StartGame();
 
                     else if (_gameOverScreen.IsVisible)
-                        ShowDungeon(_gameOverScreen, _dungeon.Restart);
-
-                    else if (_errorScreen.IsVisible)
-                        ShowDungeon(_errorScreen, _dungeon.Retry);
+                        RetryGame();
 
                     else if (_pauseScreen.IsVisible)
                         ShowDungeon(_pauseScreen, _dungeon.Resume);
@@ -136,17 +117,14 @@ class GameManager : Console
                     else if (_gameOverScreen.IsVisible)
                         ShowStartScreen(_gameOverScreen);
 
-                    else if (_errorScreen.IsVisible)
-                        ShowStartScreen(_errorScreen);
-
                     else if (_pauseScreen.IsVisible)
-                        OnGameAbandoned();
+                        AbandonGame();
                 }
             }
         }
 
         // game play handling
-        else if (_dungeon.IsVisible && !_levelCompleteAnimation.IsVisible)
+        else if (_dungeon.IsVisible && !_transition.IsVisible)
         {
             // pause
             if (keyboard.IsKeyPressed(Keys.Escape))
@@ -178,13 +156,20 @@ class GameManager : Console
         act();
     }
 
+    // called from the start screen
     void StartGame()
     {
-        if (!_startScreen.IsVisible)
-            throw new InvalidOperationException("Starting a game with the Start Screen not visible.");
         _dungeon.PrepareToStart();
-        _gameStartAnimation.IsVisible = true;
-        _gameStartAnimation.Play(_dungeon, _startScreen);
+        _transition.Finished += Transition_GameStart_OnFinished;
+        _transition.Play(_startScreen, _dungeon, Color.LightBlue, () => _dungeon.ChangeLevel());
+    }
+
+    // called from the game over screen
+    void RetryGame()
+    {
+        _dungeon.PrepareToStart();
+        _transition.Finished += Transition_GameStart_OnFinished;
+        _transition.Play(_gameOverScreen, _dungeon, Color.LightBlue, () => _dungeon.ChangeLevel());
     }
 
     void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
@@ -194,7 +179,8 @@ class GameManager : Console
         _miniMap.ShowProgramVersion();
     }
 
-    void OnGameAbandoned()
+    // when player presses escape while the pause screen is being shown
+    void AbandonGame()
     {
         ShowStartScreen(_pauseScreen);
         _sideWindow.ClearItems();
@@ -203,30 +189,24 @@ class GameManager : Console
 
     void Dungeon_OnMapFailedToGenerate(AttemptCounters failedAttempts)
     {
-        //_errorScreen.IsVisible = true;
         _dungeon.Retry();
     }
 
     void Dungeon_OnLevelCompleted(object? o, EventArgs e)
     {
-        _levelCompleteAnimation.IsVisible = true;
-        _levelCompleteAnimation.Play(_dungeon);
+        _transition.Finished += Transition_LevelCompleted_OnFinished;
+        _transition.Play(_dungeon, _dungeon, Color.Pink, () => _dungeon.ChangeLevel());
     }
 
-    void LevelCompleteAnimation_OnFinished(object? o, EventArgs e)
+    void Transition_LevelCompleted_OnFinished(object? o, EventArgs e)
     {
-        _levelCompleteAnimation.IsVisible = false;
         _dungeon.StartAfterAnimation();
+        _transition.Finished -= Transition_LevelCompleted_OnFinished;
     }
 
-    void GameStartAnimation_OnFinished(object? o, EventArgs? e)
+    void Transition_GameStart_OnFinished(object? o, EventArgs? e)
     {
-        _gameStartAnimation.IsVisible = false;
         _dungeon.StartAfterAnimation();
-    }
-
-    void GameOverAnimation_OnFinished(Object? o, EventArgs? e)
-    {
-        
+        _transition.Finished -= Transition_GameStart_OnFinished;
     }
 }

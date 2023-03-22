@@ -60,10 +60,6 @@ class Dungeon : Console
     #endregion Properties
 
     #region Methods
-    // hard reset
-    public void Restart() =>
-        Start();
-
     // soft reset after the level generation error
     public void Retry() =>
         ChangeLevel();

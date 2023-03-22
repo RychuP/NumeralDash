@@ -11,12 +11,9 @@ Gameplay mechanics:
 3. Left control when held will make the player auto move stopping automatically at road intersections.
 4. Control and shift can be combined together during auto move to stop at both of the above.
 
-## Framework:
+## Frameworks:
 
-The game requires .NET 6 in order to play.
-
-## Game engine:
-
+.NET 6
 SadConsole v9.2.2
 
 ## Screenshots:
@@ -26,3 +23,11 @@ SadConsole v9.2.2
 ![screenshot](/ScreenShots/numeraldash.gif)
 
 ![screenshot](/ScreenShots/gameplay.png)
+
+<p align="center" style="margin-bottom: 0px !important;">
+  <img width="750" src="/ScreenShots/title_screen.png" alt="Title Screen" align="center">
+  <br><br>
+  <img width="750" src="numeraldash.gif" alt="Gameplay" align="center">
+  <br><br>
+  <img width="750" src="/ScreenShots/gameplay.png" alt="Gameplay" align="center">
+</p>
