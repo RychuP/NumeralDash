@@ -102,10 +102,10 @@ class GameManager : Console
             return true;
         }
 
-        if (keyboard.IsKeyPressed(Keys.F1) && _dungeon.IsVisible)
-        {
-            _dungeon.Debug();
-        }
+        //if (keyboard.IsKeyPressed(Keys.F1) && _dungeon.IsVisible)
+        //{
+        //    _dungeon.Debug();
+        //}
 
         // keyboard handling when special screens are being shown
         else if (_startScreen.IsVisible || _gameOverScreen.IsVisible || _errorScreen.IsVisible || _pauseScreen.IsVisible)
