@@ -7,7 +7,7 @@ class Exit : Entity, ICollidable
 {
     readonly Point[] _coords;
 
-    public Exit() : base(Color.LightGray, Color.Black, 130, (int) Layer.Items) // old glyph 240
+    public Exit() : base(Color.LightGray, Color.Black, 130, (int) Layer.Items)
     {
         _coords = new Point[1] { Position };
         Name = "Exit";

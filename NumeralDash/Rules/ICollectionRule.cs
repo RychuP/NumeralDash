@@ -1,20 +1,33 @@
 ﻿using NumeralDash.Entities;
+using System.Collections.Generic;
 
 namespace NumeralDash.Rules
 {
     interface ICollectionRule
     {
-        public Color Color { get; }
+        /// <summary>
+        /// Foreground color.
+        /// </summary>
+        Color Color { get; }
 
-        public string Description { get; }
+        /// <summary>
+        /// Rule title displayed to the player.
+        /// </summary>
+        string Title { get; }
 
-        public Number NextNumber { get; }
+        /// <summary>
+        /// Next number to be collected.
+        /// </summary>
+        Number NextNumber { get; }
 
-        public void SetNextNumber();
+        /// <summary>
+        /// All numbers to be collected from the map.
+        /// </summary>
+        Queue<Number> Numbers { get; }
 
-        public Number[] Numbers { get; }
-
-        // Number is next number, int is numbers remaining
-        public event Action<Number, int> NextNumberChanged;
+        /// <summary>
+        /// Removes the next number from the list.
+        /// </summary>
+        void Dequeue();
     }
 }

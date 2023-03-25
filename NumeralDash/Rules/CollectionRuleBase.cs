@@ -1,105 +1,77 @@
 ﻿using NumeralDash.Entities;
 using System.Collections.Generic;
 
-namespace NumeralDash.Rules
+namespace NumeralDash.Rules;
+
+class CollectionRuleBase : ICollectionRule
 {
-    class CollectionRuleBase
+    #region Statics
+    static readonly Type[] s_collectionRules = 
     {
-        static readonly Type[] s_collectionRules = 
-        {
-            typeof(UpAndDownOrder),
-            typeof(ReverseOrder),
-            typeof(SequentialOrder),
-            typeof(RandomOrder),
-        };
+        //typeof(UpAndDownOrder),
+        //typeof(RandomOrder),
+        typeof(ReverseOrder),
+        typeof(SequentialOrder),
+    };
 
-        public static ICollectionRule GetRandomRule(int numberCount)
-        {
-            var index = Program.GetRandomIndex(s_collectionRules.Length);
-            object? o = Activator.CreateInstance(s_collectionRules[index], numberCount);
-            if (o is ICollectionRule r) return r;
-            else throw new InvalidOperationException("Could not create a new rule.");
-        }
-
-        public static ICollectionRule GetNextRule(int level, int numberCount)
-        {
-            return (level % 2) switch
-            {
-                1 => new SequentialOrder(numberCount),
-                _ => new ReverseOrder(numberCount)
-            };
-        }
-
-        #region Storage
-
-        /// <summary>
-        /// A list of remaing numbers to be collected.
-        /// </summary>
-        protected List<Number> RemainingNumbers { get; init; }
-
-        /// <summary>
-        /// Amount of numbers to be generated.
-        /// </summary>
-        protected int NumberCount { get; set; }
-
-        /// <summary>
-        /// Next number to be collected.
-        /// </summary>
-        public Number NextNumber { get; protected set; } = Number.Empty;
-
-        /// <summary>
-        /// Initial list of all numbers to collect from the map.
-        /// </summary>
-        public Number[] Numbers { get; init; }
-
-        /// <summary>
-        /// Foreground color.
-        /// </summary>
-        public Color Color { get; protected set; }
-
-        #endregion
-
-        public CollectionRuleBase(int count)
-        {
-            if (count < 1)
-            {
-                throw new ArgumentException("Minimum amount of numbers to generate is 1.");
-            }
-
-            NumberCount = count;
-            RemainingNumbers = new();
-            Numbers = new Number[NumberCount];
-        }
-
-        public virtual void SetNextNumber()
-        {
-            if (RemainingNumbers.Count >= 1)
-            {
-                SetNextAndRemove(0);
-                OnNextNumberChanged(RemainingNumbers.Count + 1);
-            }
-            else
-            {
-                NextNumber = Number.Finished;
-                OnNextNumberChanged(0);
-            }
-        }
-
-        protected void SetNextAndRemove(int index)
-        {
-            NextNumber = RemainingNumbers[index];
-            RemainingNumbers.RemoveAt(index);
-        }
-
-        #region Events
-
-        protected void OnNextNumberChanged(int numbersRemaining)
-        {
-            NextNumberChanged?.Invoke(NextNumber, numbersRemaining);
-        }
-
-        public event Action<Number, int>? NextNumberChanged;
-
-        #endregion
+    public static ICollectionRule GetRandomRule(int numberCount)
+    {
+        var index = Program.GetRandomIndex(s_collectionRules.Length);
+        object? o = Activator.CreateInstance(s_collectionRules[index], numberCount);
+        if (o is ICollectionRule r) return r;
+        else throw new InvalidOperationException("Could not create a new rule.");
     }
+
+    public static ICollectionRule GetNextRule(int level, int numberCount)
+    {
+        return (level % 2) switch
+        {
+            0 => new SequentialOrder(numberCount),
+            _ => new ReverseOrder(numberCount)
+        };
+    }
+    #endregion Statics
+
+    #region Fields
+
+    #endregion Fields
+
+    #region Constructors
+    public CollectionRuleBase(int count, string title, Color color)
+    {
+        if (count < 1)
+            throw new ArgumentException("Minimum amount of numbers to generate is 1.");
+
+        Numbers = new Queue<Number>(count);
+        Title = title;
+        Color = color;
+    }
+    #endregion Constructors
+
+    #region Properties
+    public Number NextNumber
+    {
+        get
+        {
+            if (Numbers.Count > 0)
+                return Numbers.Peek();
+            else
+                return Number.Empty;
+        }
+    }
+
+    public Queue<Number> Numbers { get; init; }
+
+    public Color Color { get; init; }
+
+    public string Title { get; init; }
+    #endregion Properties
+
+    #region Methods
+    public void Dequeue()
+    {
+        if (Numbers.Count == 0) return;
+        Numbers.Dequeue();
+    }
+    #endregion Methods
 }

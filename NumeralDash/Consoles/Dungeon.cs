@@ -13,17 +13,19 @@ class Dungeon : Console
 {
     #region Fields
     // timer
-    const int LevelTime = 5 * 60 + 0;               // time in seconds for the initial level
+    const int DefaultLevelTimeLimit = 5 * 60 + 0;               // time in seconds for the initial level
     const int TimeChangePerLevel = 0 * 60 + 10;     // by how much to reduce the time per level in seconds
     readonly Timer _timer = new(1000) { AutoReset = true };
-    readonly TimeSpan _oneSecond = new(0, 0, 1);
-    TimeSpan _totalTimePlayed = TimeSpan.Zero;
+    readonly TimeSpan OneSecond = TimeSpan.FromSeconds(1);
+    TimeSpan _gameTimeTotal = TimeSpan.Zero;
     TimeSpan _time;
 
     // level
     bool _levelComplete = false;
+    ICollectionRule _rule = new EmptyOrder();
     Renderer _entityManager;
     int _level = 0;
+    int _score = 0;
     Map _map;
 
     // movement modifiers
@@ -35,19 +37,17 @@ class Dungeon : Console
     public Dungeon(int viewSizeX, int viewSizeY) : base(viewSizeX, viewSizeY, Map.DefaultSize, Map.DefaultSize)
     {
         _map = new Map();
-        _timer.Elapsed += OnTimeElapsed;
+        _timer.Elapsed += Timer_OnTimeElapsed;
         Font = Fonts.C64;
 
         // entity manager (temporary -> will be removed in ChangeMap)
         _entityManager = new Renderer();
         SadComponents.Add(_entityManager);
 
-        // set a temp rule
-        Rule = new EmptyOrder();
-
         // create a player
         Player = new Player(_map.PlayerStartPosition, this);
         Player.PositionChanged += Player_OnPositionChanged;
+        Player.DepositMade += Player_OnDepositMade;
         SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = Player });
 
         IsVisible = false;
@@ -56,63 +56,84 @@ class Dungeon : Console
 
     #region Properties
     public Player Player { get; init; }
-    public ICollectionRule Rule { get; private set; }
+
+    public ICollectionRule Rule
+    {
+        get => _rule;
+        private set
+        {
+            _rule = value;
+            OnCollectionRuleChanged(value);
+        }
+    }
+
+    public int Level
+    {
+        get => _level;
+        private set
+        {
+            if (value < 0)
+                throw new ArgumentException("Level cannot be smaller than 1.");
+            if (value != 0 && value <= _level)
+                throw new ArgumentException("Levels cannot be going down or staying the same.");
+            _level = value;
+            OnLevelChanged(value);
+        }
+    }
+
+    public int Score
+    {
+        get => _score;
+        private set
+        {
+            if (value < 0)
+                throw new ArgumentException("Score cannot be negative.");
+            if (value != 0 && value <= _score)
+                throw new ArgumentException("Score cannot be going down or staying the same.");
+            _score = value;
+            OnScoreChanged(value);
+        }
+    }
+
+    public TimeSpan Time
+    {
+        get => _time;
+        private set
+        {
+            _time = value;
+            OnTimeChanged(value);
+        }
+    }
     #endregion Properties
 
     #region Methods
     // soft reset after the level generation error
     public void Retry() =>
-        ChangeLevel();
+        ChangeMap();
 
+    // triggers various methods for debugging
     public void Debug() =>
         OnGameOver();
 
-    public void Start()
+    // resets variables before the game starts
+    public void PrepareStartup()
     {
-        _level = 0;
-        _levelComplete = false;
-        ChangeLevel();
-        StartTimer();
-        OnLevelChanged();
+        Level = 0;
+        Score = 0;
     }
 
-    public void StartAfterAnimation()
+    // finishes the preperation to start after the level has been changed during rectangle animation
+    public void FinishStartup()
     {
-        _levelComplete = false;
-        StartTimer();
-        OnLevelChanged();
+        _timer.Start();
     }
 
-    public void PrepareToStart()
+    void SetTimer()
     {
-        _level = 0;
-    }
-
-    public void ChangeLevel()
-    {
-        try
-        {
-            _map = new(_level++);
-            ChangeMap();
-            ChangeRule();
-            SpawnEntities();
-            Surface.View = Surface.View.WithCenter(Player.AbsolutePosition);
-        }
-        catch (MapGenerationException e)
-        {
-            IsVisible = false;
-            _level--;
-            OnMapFailedToGenerate(e.FailedAttempts);
-        }
-    }
-
-    void StartTimer()
-    {
-        int totalTime = LevelTime - (_level - 1) * TimeChangePerLevel;
+        int totalTime = DefaultLevelTimeLimit - Level * TimeChangePerLevel;
         int minutes = Convert.ToInt32(totalTime / 60);
         int seconds = totalTime - minutes * 60;
-        _time = new(0, minutes, seconds);
-        _timer.Start();
+        Time = new(0, minutes, seconds);
     }
 
     public void Pause()
@@ -127,54 +148,78 @@ class Dungeon : Console
         IsVisible = true;
     }
 
-    void ChangeMap()
+    /// <summary>
+    /// Generates a new map.
+    /// </summary>
+    public void ChangeMap()
     {
-        // get new surface
-        int x = ViewWidth, y = ViewHeight;
-        Surface = new CellSurface(_map.Width, _map.Height, _map.Tiles);
-        ViewWidth = x;
-        ViewHeight = y;
+        try
+        {
+            _map = new(Level);
+        }
+        catch (MapGenerationException)
+        {
+            OnMapFailedToGenerate(_map.RoomGenFailedAttempts, _map.RoadGenFailedAttempts, _map.MapGenFailedAttempts);
+        }
+        OnMapChanged();
+    }
 
+    /// <summary>
+    /// Changes cell surface and populates it with map tiles.
+    /// </summary>
+    void ChangeCellSurface()
+    {
+        var (x, y) = (ViewWidth, ViewHeight);
+        Surface = new CellSurface(_map.Width, _map.Height, _map.Tiles);
+        (ViewWidth, ViewHeight) = (x, y);
+    }
+
+    void ChangeEntityRenderer()
+    {
         // remove prev renderer
         SadComponents.Remove(_entityManager);
 
         // get new renderer
         _entityManager = new Renderer();
         SadComponents.Add(_entityManager);
+    }
 
+    void SpawnPlayer()
+    {
         // register player with the renderer
         _entityManager.Add(Player);
+
+        // set player position to the new start point
+        Player.Position = _map.PlayerStartPosition;
     }
 
     /// <summary>
-    /// Spawns entities (all numbers and the exit).
+    /// Spawns all numbers for the current level.
     /// </summary>
-    void SpawnEntities()
+    void SpawnNumbers()
     {
-        // reposition player to the new start point
-        Player.Position = _map.PlayerStartPosition;
-
-        // spawn numbers
-        for (int i = 0; i < Rule.Numbers.Length; i++)
+        foreach (ICollidable number in Rule.Numbers)
         {
             // find a room for the new collidable entity (number)
-            ICollidable c = Rule.Numbers[i];
-            PlaceCollidableInRandomRoom(c);
+            PlaceCollidableInRandomRoom(number);
 
             // register entity
-            _entityManager.Add(c as Entity);
+            _entityManager.Add(number as Entity);
 
             // register number extensions if any
-            if (c.Size > 1 && c is Number n)
+            if (number.Size > 1 && number is Number n)
             {
                 foreach (var e in n.Extensions)
-                {
                     _entityManager.Add(e);
-                }
             }
         }
+    }
 
-        // spawn exit
+    /// <summary>
+    /// Spawns level exit.
+    /// </summary>
+    void SpawnExit()
+    {
         var exit = new Exit();
         PlaceCollidableInRandomRoom(exit);
         _entityManager.Add(exit);
@@ -199,8 +244,8 @@ class Dungeon : Console
     /// </summary>
     void ChangeRule()
     {
-        Rule = CollectionRuleBase.GetNextRule(_level, _map.NumberCount);
-    }    
+        Rule = CollectionRuleBase.GetNextRule(Level, _map.NumberCount);
+    }
 
     /// <summary>
     /// Tries to move the player by one tile in the given direction.
@@ -237,7 +282,7 @@ class Dungeon : Console
                     // check if the level is completed
                     else if (e is Exit)
                     {
-                        if (Rule.NextNumber == Number.Finished)
+                        if (Rule.NextNumber == Number.Empty)
                             OnLevelCompleted();
                         else
                             Player.EncounteredCollidable = true;
@@ -253,21 +298,27 @@ class Dungeon : Console
 
     public override void Update(TimeSpan delta)
     {
-        if (_levelComplete) return;
-        base.Update(delta);
+        // update view position
+        Point prevViewPosition = View.Position;
+        View = View.WithCenter(Player.AbsolutePosition);
+        if (prevViewPosition != View.Position)
+            OnViewPositionChanged(prevViewPosition, View.Position);
 
-        if (Player.IsMovingFast)
+        // update player position
+        if (!_levelComplete && Player.IsMovingFast)
         {
             // stop player when encountered collectible or fast move stop modifier conditions are met
-            if (Player.EncounteredCollidable || 
+            if (Player.EncounteredCollidable ||
                 (_ctrlIsDown && Player.IsAtIntersection) ||
                 (_shiftIsDown && Player.IsAbeamCollidable))
-                    Player.FastMove.Stop();
+                Player.FastMove.Stop();
 
             // try moving player in the fast move direction
             else if (!TryMovePlayer(Player.FastMove.Direction))
                 Player.FastMove.Stop();
         }
+
+        base.Update(delta);
     }
 
     public new bool ProcessKeyboard(Keyboard keyboard)
@@ -332,8 +383,15 @@ class Dungeon : Console
             (keyboard.IsKeyReleased(Keys.LeftShift) || keyboard.IsKeyReleased(Keys.LeftControl));
     }
 
+    void Player_OnDepositMade(object? o, NumberEventArgs e)
+    {
+        Score += e.Number;
+        OnDepositMade(e.Number);
+    }
+
     void Player_OnPositionChanged(object? o, EventArgs e)
     {
+        // calculate fast move stop points
         if (Player.IsMovingFast)
         {
             var playerLeft = Player.FastMove.Direction - 2;
@@ -345,7 +403,7 @@ class Dungeon : Console
                 var direction = playerLeft + i;
                 var position = Player.Position;
 
-                while (true) 
+                while (true)
                 {
                     position += direction;
                     Tile tile = _map.GetTile(position);
@@ -372,51 +430,102 @@ class Dungeon : Console
         _timer.Stop();
         _levelComplete = true;
         LevelCompleted?.Invoke(this, EventArgs.Empty);
+        Level++;
     }
 
-    void OnLevelChanged()
+    void OnMapFailedToGenerate(int roomGenAttempts, int roadGenAttempts, int mapGenAttempts)
     {
-        var mapGenerationInfo = new string[]
-        {
-            $"Dungeon level: {_level}, number of rooms: {_map.Rooms.Count}, map size: {Area.Size}."
-        };
-
-        LevelChanged?.Invoke(Rule, _level, mapGenerationInfo);
-
-        // invoke this as well to show the timer as soon as the new level is displayed (otherwise there is a 1 sec delay)
-        TimeElapsed?.Invoke(_time);
+        var args = new MapGenEventArgs(roomGenAttempts, roadGenAttempts, mapGenAttempts);
+        MapFailedToGenerate?.Invoke(this, args);
     }
 
-    void OnMapFailedToGenerate(AttemptCounters failedAttempts)
+    void Timer_OnTimeElapsed(object? o, ElapsedEventArgs e)
     {
-        MapFailedToGenerate?.Invoke(failedAttempts);
-    }
+        Time -= OneSecond;
+        _gameTimeTotal += OneSecond;
 
-    void OnTimeElapsed(object? o, ElapsedEventArgs e)
-    {
-        _time -= _oneSecond;
-        _totalTimePlayed += _oneSecond;
-
-        if (_time == TimeSpan.Zero)
+        if (Time == TimeSpan.Zero)
         {
             Pause();
             OnGameOver();
         }
+    }
 
-        TimeElapsed?.Invoke(_time);
+    void OnMapChanged()
+    {
+        _levelComplete = false;
+
+        ChangeCellSurface();
+        ChangeEntityRenderer();
+        ChangeRule();
+        SpawnPlayer();
+        SpawnNumbers();
+        SpawnExit();
+        SetTimer();
+
+        var size = new Size(Surface.Width, Surface.Height);
+        var args = new MapEventArgs(size, Surface.View);
+        MapChanged?.Invoke(this, args);
     }
 
     void OnGameOver()
     {
-        GameOver?.Invoke(_level, _totalTimePlayed);
+        var args = new GameOverEventArgs(Level, Score, _gameTimeTotal);
+        GameOver?.Invoke(this, args);
     }
-    #endregion
+
+    void OnCollectionRuleChanged(ICollectionRule rule)
+    {
+        var args = new RuleEventArgs(rule);
+        RuleChanged?.Invoke(this, args);
+    }
+
+    void OnDepositMade(Number number)
+    {
+        Rule.Dequeue();
+
+        var args = new DepositEventArgs(number, Rule.NextNumber, Rule.Numbers.Count);
+        DepositMade?.Invoke(this, args);
+    }
+
+    void OnScoreChanged(int score)
+    {
+        var args = new ScoreEventArgs(score);
+        ScoreChanged?.Invoke(this, args);
+    }
+
+    void OnLevelChanged(int level)
+    {
+        var args = new LevelEventArgs(level);
+        LevelChanged?.Invoke(this, args);
+    }
+
+    void OnTimeChanged(TimeSpan time)
+    {
+        var args = new TimeEventArgs(time);
+        TimeChanged?.Invoke(this, args);
+    }
+
+    void OnViewPositionChanged(Point prevPosition, Point newPosition)
+    {
+        var args = new PositionEventArgs(newPosition);
+        ViewPositionChanged?.Invoke(this, args);
+    }
+    #endregion Methods
 
     #region Events
-    public event Action<TimeSpan>? TimeElapsed;
-    public event Action<int, TimeSpan>? GameOver;
-    public event Action<AttemptCounters>? MapFailedToGenerate;
-    public event Action<ICollectionRule, int, string[]>? LevelChanged;
+    // map events
+    public event EventHandler<LevelEventArgs>? LevelChanged;
+    public event EventHandler<RuleEventArgs>? RuleChanged;
+    public event EventHandler<MapEventArgs>? MapChanged;
+    public event EventHandler<MapGenEventArgs>? MapFailedToGenerate;
+
+    // gameplay events
+    public event EventHandler<TimeEventArgs>? TimeChanged;
+    public event EventHandler<ScoreEventArgs>? ScoreChanged;
+    public event EventHandler<DepositEventArgs>? DepositMade;
+    public event EventHandler<PositionEventArgs>? ViewPositionChanged;
+    public event EventHandler<GameOverEventArgs>? GameOver;
     public event EventHandler? LevelCompleted;
     #endregion Events
 }

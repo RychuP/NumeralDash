@@ -14,10 +14,9 @@ class Item
         Rule,
         Next,
         Inv,
-        Last,
         Timer,
         Level,
-        Total,
+        Score,
         Remain
     }
 
@@ -43,7 +42,7 @@ class Item
     public void Display(Console c)
     {
         // print title
-        string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, '-');
+        string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, (char)196);  // '-');
         c.Print(Position.X, Position.Y, title);
     }
 

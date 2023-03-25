@@ -34,10 +34,10 @@ class Row
             if (plusSignsCount > 0 && plusSignsDisplayed < plusSignsCount)
             {
                 x += itemWidth;
-                c.Print(x, y, "+");
-                c.Print(x, y + 1, "|");
-                c.Print(x, y + 2, "|");
-                c.Print(x, y + 3, "|");
+                c.Print(x, y, "+"); // (char)197);
+                c.Print(x, y + 1, (char)179); //  "|");
+                c.Print(x, y + 2, (char)179); //  "|");
+                c.Print(x, y + 3, (char)179);  // "|");
                 plusSignsDisplayed++;
             }
 

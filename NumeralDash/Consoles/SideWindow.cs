@@ -1,15 +1,12 @@
 ﻿using NumeralDash.Entities;
 using NumeralDash.Consoles.SideWindowParts;
-using NumeralDash.Rules;
-using NumeralDash.World;
-
 namespace NumeralDash.Consoles;
 
 class SideWindow : Console
 {
-    // settings
-    const int horizontalBorder = 1,
-        verticalBorder = 0;
+    #region Fields
+    const int HorizontalBorder = 1;
+    const int VerticalBorder = 0;
 
     /// <summary>
     /// Items to be displayed in the window.
@@ -18,32 +15,49 @@ class SideWindow : Console
     {
         new Row(Item.ShortNames.Rule),
         new Row(Item.ShortNames.Timer),
+        new Row(Item.ShortNames.Score),
         new Row(Item.ShortNames.Next, Item.ShortNames.Inv),
-        new Row(Item.ShortNames.Last, Item.ShortNames.Level),
-        new Row(Item.ShortNames.Total, Item.ShortNames.Remain)
+        new Row(Item.ShortNames.Level, Item.ShortNames.Remain),
     };
 
-    public SideWindow(int sizeX, int sizeY, Dungeon dungeon) : base(sizeX, sizeY)
+    readonly Mask _mask;
+    #endregion Fields
+
+    #region Constructors
+    public SideWindow(int width, int height, Dungeon dungeon) : base(width, height)
     {
         // coordinate for each row
-        int y = verticalBorder;
+        int y = VerticalBorder;
 
+        // stats cover
+        _mask = new(width, height);
+        Children.Add(_mask);
+        
         // display items
         foreach (var row in _rows)
         {
-            row.Display(this, y, horizontalBorder);
+            row.Display(this, y, HorizontalBorder);
             y += row.Height;
         }
 
-        // hook events
         dungeon.LevelChanged += Dungeon_OnLevelChanged;
-        dungeon.Player.InventoryChanged += Player_OnInventoryChanged;
-        dungeon.Player.DepositMade += Player_OnDepositMade;
-        dungeon.TimeElapsed += Dungeon_OnTimeElapsed;
-        dungeon.GameOver += Dungeon_OnGameOver;
-        dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
-    }
+        dungeon.RuleChanged += Dungeon_OnRuleChanged;
+        dungeon.MapChanged += Dungeon_OnMapChanged;
 
+        dungeon.TimeChanged += Dungeon_OnTimeChanged;
+        dungeon.ScoreChanged += Dungeon_OnScoreChanged;
+        dungeon.DepositMade += Dungeon_OnDepositMade;
+        dungeon.GameOver += Dungeon_OnGameOver;
+        dungeon.LevelCompleted += Dungeon_OnLevelCompleted;
+        dungeon.Player.InventoryChanged += Player_OnInventoryChanged;
+    }
+    #endregion Constructors
+
+    #region Properties
+
+    #endregion Properties
+
+    #region Methods
     public void PrintItemContent(Item.ShortNames itemName, string s, Color c)
     {
         var row = Array.Find(_rows, r => r.Contains(itemName));
@@ -71,59 +85,72 @@ class SideWindow : Console
             row.Clear(this);
     }
 
-    #region Event Handlers
-
-    void Player_OnInventoryChanged(Number n)
+    void Player_OnInventoryChanged(object? o, NumberEventArgs e)
     {
-        PrintItemContent(Item.ShortNames.Inv, n.ToString(), n.Color);
+        string number = e.Number == Number.Empty ? string.Empty : e.Number.ToString();
+        PrintItemContent(Item.ShortNames.Inv, number, e.Number.Color);
     }
 
-    void OnNextNumberChanged(Number n, int remainingNumbers)
+    void PrintCollectionDetails(Number nextNumber, int remainingNumbers)
     {
-        var text = (n == Number.Finished) ? "Exit" : n.ToString();
-        PrintItemContent(Item.ShortNames.Next, text, n.Color);
+        var text = (nextNumber == Number.Empty) ? "Exit" : nextNumber.ToString();
+        PrintItemContent(Item.ShortNames.Next, text, nextNumber.Color);
         PrintItemContent(Item.ShortNames.Remain, remainingNumbers.ToString(), Color.White);
     }
 
-    void OnRuleChanged(ICollectionRule r)
+    void Dungeon_OnRuleChanged(object? o, RuleEventArgs e)
     {
-        // display rule description
-        PrintItemContent(Item.ShortNames.Rule, r.Description, r.Color);
-
-        // hook event handlers to the new rule
-        r.NextNumberChanged += OnNextNumberChanged;
-
-        // display rule info
-        OnNextNumberChanged(r.NextNumber, r.Numbers.Length);
+        PrintItemContent(Item.ShortNames.Rule, e.Rule.Title, e.Rule.Color);
+        PrintCollectionDetails(e.Rule.NextNumber, e.Rule.Numbers.Count);
     }
 
-    void Player_OnDepositMade(Number n, int totalNumbers)
+    void Dungeon_OnScoreChanged(object? o, ScoreEventArgs e)
     {
-        PrintItemContent(Item.ShortNames.Last, n.ToString(), n.Color);
-        PrintItemContent(Item.ShortNames.Total, totalNumbers.ToString(), Color.White);
+        PrintItemContent(Item.ShortNames.Score, e.Score.ToString(), Color.Orange);
     }
 
-    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
+    void Dungeon_OnMapChanged(object? o, MapEventArgs e)
     {
-        ClearItems();
-        PrintItemContent(Item.ShortNames.Level, level.ToString(), DefaultForeground);
-        OnRuleChanged(rule);
+        _mask.IsVisible = false;
     }
 
-    void Dungeon_OnTimeElapsed(TimeSpan t)
+    void Dungeon_OnDepositMade(object? o, DepositEventArgs e)
     {
-        PrintItemContent(Item.ShortNames.Timer, t.ToString(), Color.LightSkyBlue);
+        PrintCollectionDetails(e.NextNumber, e.NumbersCount);
     }
 
-    void Dungeon_OnGameOver(int level, TimeSpan timePlayed)
+    void Dungeon_OnLevelChanged(object? o, LevelEventArgs e)
     {
-        ClearItems();
+        PrintItemContent(Item.ShortNames.Level, (e.Level + 1).ToString(), DefaultForeground);
     }
 
-    void Dungeon_OnMapFailedToGenerate(AttemptCounters failedAttempts)
+    void Dungeon_OnTimeChanged(object? o, TimeEventArgs e)
+    {
+        PrintItemContent(Item.ShortNames.Timer, e.Time.ToString(), Color.LightSkyBlue);
+    }
+
+    void Dungeon_OnGameOver(object? o, EventArgs e)
     {
         ClearItems();
+        _mask.IsVisible = true;
     }
 
-    #endregion
+    void Dungeon_OnLevelCompleted(object? o, EventArgs e)
+    {
+        _mask.IsVisible = true;
+    }
+
+    void GameManager_OnGameAbandoned(object? o, EventArgs e)
+    {
+        ClearItems();
+        _mask.IsVisible = true;
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is GameManager gm)
+            gm.GameAbandoned += GameManager_OnGameAbandoned;
+        base.OnParentChanged(oldParent, newParent);
+    }
+    #endregion Methods
 }

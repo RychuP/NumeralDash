@@ -1,7 +1,4 @@
-﻿using System;
-using SadConsole;
-using SadRogue.Primitives;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using NumeralDash.Tiles;
 
@@ -10,6 +7,7 @@ namespace NumeralDash.World
     // Stores, manipulates and queries Tile data
     class Map
     {
+        #region Constants
         // settings
         public const int DefaultSize = 50;                    // map is square -> this is the default length of its sides
                const int SizeModifier = 5,                    // by how much the map will grow each level
@@ -23,18 +21,76 @@ namespace NumeralDash.World
                          GenerationAttemptsPerLevel = 10,     // this is added to the above 3 maxes and multiplied by _level
                          MaxAttemptsMapGeneration = 100,      // how many times this object will try to generate a map with current settings
                          NumbersPerRoom = 1;                  // how many numbers per room can this map accept
+        #endregion Constants
 
-        #region Storage
-
-        // for debugging
-        int _failedAttemptsMapGeneration = 0;
-        int _failedAttemptsRoomGeneration = 0;
-        int _failedAttemptsRoadGeneration = 0;
-
+        #region Fields
         /// <summary>
         /// List of all rooms.
         /// </summary>
-        readonly List <Room> _rooms;
+        readonly List<Room> _rooms;
+
+        readonly int _level;
+        #endregion Fields
+
+        #region Constructors
+        public Map(int level) : this(DefaultSize + level * SizeModifier, DefaultSize + level * SizeModifier)
+        {
+            _level = level;
+
+            // keep trying to generate a map until a valid one is made
+            while (true)
+            {
+                try
+                {
+                    Generate(MaxRooms + level * MaxRoomsModifier, MinRoomSize, MaxRoomSize);
+                    break;
+                }
+                catch (RoomGenerationException)
+                {
+                    MapGenFailedAttempts++;
+                    RoomGenFailedAttempts++;
+                }
+                catch (RoadGenerationException)
+                {
+                    MapGenFailedAttempts++;
+                    RoadGenFailedAttempts++;
+                }
+
+                if (MapGenFailedAttempts > MaxAttemptsMapGeneration)
+                    throw new MapGenerationException();
+            }
+        }
+
+        // creates an unwalkable map full with walls
+        public Map(int width = DefaultSize, int height = DefaultSize)
+        {
+            Width = width;
+            Height = height;
+            Tiles = new Tile[width * height];
+            _rooms = new();
+
+            // Fill the entire tile array with walls
+            for (int i = 0; i < Tiles.Length; i++)
+            {
+                Tiles[i] = new Wall();
+            }
+
+            PlayerStartPosition = (width / 2, height / 2);
+        }
+        #endregion Constructors
+
+        #region Properties
+        /// <summary>
+        /// All the rooms that have been generated on the map.
+        /// </summary>
+        public IReadOnlyList<Room> Rooms => //List<Room>
+            _rooms;
+
+        /// <summary>
+        /// How many numbers to generate for this map (used by collection rules).
+        /// </summary>
+        public int NumberCount =>
+            Convert.ToInt32(Rooms.Count * NumbersPerRoom);
 
         /// <summary>
         /// Width of the map.
@@ -51,87 +107,24 @@ namespace NumeralDash.World
         /// </summary>
         public Tile[] Tiles { get; private set; }
 
-        // Starting position for the player
+        /// <summary>
+        /// Starting position for the player.
+        /// </summary>
         public Point PlayerStartPosition { get; private set; }
 
-        readonly int _level;
+        // for debugging
+        public int MapGenFailedAttempts { get; private set; } = 0;
+        public int RoomGenFailedAttempts { get; private set; } = 0;
+        public int RoadGenFailedAttempts { get; private set; } = 0;
+        #endregion Properties
 
-        #endregion
-
-        // constructor
-        public Map(int level) : this(DefaultSize + level * SizeModifier, DefaultSize + level * SizeModifier)
-        {
-            _level = level;
-
-            // keep trying to generate a map until one valid is made
-            while (true)
-            {
-                try
-                {
-                    Generate(MaxRooms + level * MaxRoomsModifier, MinRoomSize, MaxRoomSize);
-                    break;
-                }
-                catch (RoomGenerationException)
-                {
-                    _failedAttemptsMapGeneration++;
-                    _failedAttemptsRoomGeneration++;
-                }
-                catch (RoadGenerationException)
-                {
-                    _failedAttemptsMapGeneration++;
-                    _failedAttemptsRoadGeneration++;
-                }
-
-                if (_failedAttemptsMapGeneration > MaxAttemptsMapGeneration)
-                {
-                    throw new MapGenerationException(
-                        _failedAttemptsRoomGeneration,
-                        _failedAttemptsRoadGeneration,
-                        _failedAttemptsMapGeneration
-                    );
-                }
-            }
-        }
-
-        // constructor that creates an unwalkable map full with walls
-        public Map(int width = DefaultSize, int height = DefaultSize)
-        {
-            Width = width;
-            Height = height;
-            Tiles = new Tile[width * height];
-            _rooms = new();
-
-            // Fill the entire tile array with walls
-            for (int i = 0; i < Tiles.Length; i++)
-            {
-                Tiles[i] = new Wall();
-            }
-
-            PlayerStartPosition = (width / 2, height / 2);
-        }
-
+        #region Methods
         /// <summary>
         /// Checks it the point p is outside the bounds of the map.
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
         bool PointIsOutOfBounds(Point p) => p.X < 0 || p.Y < 0 || p.X >= Width || p.Y >= Height;
-
-        /// <summary>
-        /// How many numbers to generate for this map (used by collection rules).
-        /// </summary>
-        public int NumberCount => Convert.ToInt32(Rooms.Count * NumbersPerRoom);
-
-
-        #region Room Management
-
-        /// <summary>
-        /// All the rooms that have been generated on the map.
-        /// </summary>
-        public List<Room> Rooms
-        {
-            get => _rooms;
-        }
 
         /// <summary>
         /// Returns a random room.
@@ -142,11 +135,6 @@ namespace NumeralDash.World
             int index = Game.Instance.Random.Next(0, _rooms.Count - 1);
             return _rooms[index];
         }
-
-        #endregion
-
-
-        #region Tile Management
 
         // returns true if the tile location is walkable
         public bool IsWalkable(Point p, out Room? room)
@@ -176,10 +164,7 @@ namespace NumeralDash.World
             } 
         }
 
-        #endregion
-
-
-        #region Map Generator
+        // map generator
         public void Generate(int maxRooms, int minRoomSize, int maxRoomSize)
         {
             // create rooms on the map
@@ -437,23 +422,6 @@ namespace NumeralDash.World
                 legs++;
             }
         }
-
-        #endregion
+        #endregion Methods
     }
-
-    class RoomGenerationException : OverflowException { }
-
-    class RoadGenerationException : OverflowException { }
-
-    class MapGenerationException : OverflowException
-    {
-        public AttemptCounters FailedAttempts;
-
-        public MapGenerationException(int roomGenerationAttempts, int roadGenerationAttempts, int mapGenerationAttempts) : base()
-        {
-            FailedAttempts = new(roomGenerationAttempts, roadGenerationAttempts, mapGenerationAttempts);
-        }
-    }
-
-    record AttemptCounters(int RoomGeneration, int RoadGeneration, int MapGeneration);
 }

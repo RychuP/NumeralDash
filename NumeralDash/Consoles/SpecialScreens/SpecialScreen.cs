@@ -3,7 +3,7 @@
 class SpecialScreen : ScreenSurface
 {
     const int TextRow = 20;
-    static protected string Enter => Violet("Enter");
+    static protected string Enter => Green("Enter"); // Recolor("Enter", "khaki");
     static protected string Esc => Green("Esc");
 
     public SpecialScreen(int width, int height, string topText, string bottomText) : base(width, height)
@@ -18,7 +18,7 @@ class SpecialScreen : ScreenSurface
     protected void Print(int deltaY, string text)
     {
         var coloredText = ColoredString.Parser.Parse(text);
-        Surface.PrintCenter(TextRow + deltaY, coloredText);
+        Surface.Print(TextRow + deltaY, coloredText);
     }
 
     static string Recolor(string text, string color) =>
@@ -29,8 +29,4 @@ class SpecialScreen : ScreenSurface
 
     static protected string Orange(object text) =>
         Recolor(text?.ToString() ?? "", "orange");
-
-    static protected string Violet(object text) =>
-        Recolor(text?.ToString() ?? "", "violet");
-
 }

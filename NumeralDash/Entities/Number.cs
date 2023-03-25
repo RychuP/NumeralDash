@@ -6,7 +6,6 @@ namespace NumeralDash.Entities;
 class Number : Entity, ICollidable
 {
     // instances of special numbers
-    public static Number Finished = new(-1);
     public static Number Empty = new(0);
 
     readonly int _value;
@@ -40,9 +39,7 @@ class Number : Entity, ICollidable
         }
         // set color for special numbers
         else
-        {
-            Appearance.Foreground = (_value == 0) ? Color.Red : Color.DarkSeaGreen;
-        }
+            Appearance.Foreground = (_value == 0) ? Color.DarkSeaGreen : Color.Red;
 
         // check if the value occupies more than one cell and if so, create extensions
         if (Size > 1)

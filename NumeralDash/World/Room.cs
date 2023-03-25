@@ -303,7 +303,7 @@ namespace NumeralDash.World
 
         public void PlaceNumber(Number n, Point p)
         {
-            if (n != Number.Empty && n != Number.Finished)
+            if (n != Number.Empty)
             {
                 _collidables.Add(n);
                 n.Coord = p;

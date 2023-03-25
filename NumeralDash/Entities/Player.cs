@@ -1,7 +1,6 @@
 ﻿using SadConsole.Entities;
 using System.Collections.Generic;
 using System.Linq;
-using NumeralDash.Rules;
 using NumeralDash.Consoles;
 
 namespace NumeralDash.Entities;
@@ -9,9 +8,9 @@ namespace NumeralDash.Entities;
 class Player : Entity
 {
     #region Fields
-    List<Number> _numbers;
-    Number _inventory;
     readonly Dungeon _dungeon;
+    List<Number> _numbers;
+    Number _inventory = Number.Empty;
     #endregion Fields
 
     #region Constructors
@@ -21,13 +20,15 @@ class Player : Entity
         Position = startPosition;
         _numbers = new();
         _dungeon = dungeon;
-        _inventory = Number.Empty;
-        dungeon.LevelChanged += Dungeon_OnLevelChanged;
+        dungeon.MapChanged += Dungeon_OnLevelChanged;
         FastMove.Stopped += FastMove_OnStopped;
     }
     #endregion Constructors
 
     #region Properties
+    public bool IsMovingFast =>
+        FastMove.IsOn;
+
     public Number LastDrop { get; private set; } = Number.Empty;
 
     public FastMove FastMove { get; init; } = new();
@@ -41,8 +42,15 @@ class Player : Entity
     // the new tile just entered contained a collidable
     public bool EncounteredCollidable { get; set; } = false;
 
-    public bool IsMovingFast =>
-        FastMove.IsOn;
+    public Number Inventory
+    {
+        get => _inventory;
+        private set
+        {
+            _inventory = value;
+            OnInventoryChanged(value);
+        }
+    }
     #endregion Properties
 
     #region Methods
@@ -69,7 +77,7 @@ class Player : Entity
     /// <returns></returns>
     public Number PickUp(Number n)
     {
-        if (_numbers.Contains(n) || (_inventory == n))
+        if (_numbers.Contains(n) || (Inventory == n))
         {
             throw new ArgumentException("Trying to collect a duplicate number.");
         }
@@ -77,16 +85,15 @@ class Player : Entity
         EncounteredCollidable = true;
 
         // check if the number can be collected and placed in the numbers list
-        if (_dungeon.Rule.NextNumber == n)
+        if (_dungeon.Rule.NextNumber != Number.Empty && _dungeon.Rule.NextNumber == n)
         {
             DepositNumber(n);
 
             // check if the number in the inventory can now be placed in the numbers list as well
-            if (_dungeon.Rule.NextNumber == _inventory)
+            if (_dungeon.Rule.NextNumber != Number.Empty && _dungeon.Rule.NextNumber == Inventory)
             {
-                DepositNumber(_inventory);
-                _inventory = Number.Empty;
-                OnInventoryChanged();
+                DepositNumber(Inventory);
+                Inventory = Number.Empty;
             }
             
             return Number.Empty;
@@ -95,9 +102,8 @@ class Player : Entity
         // place the number in the players inventory
         else
         {
-            Number drop = _inventory;
-            _inventory = n;
-            OnInventoryChanged();
+            Number drop = Inventory;
+            Inventory = n;
             LastDrop = drop;
             return drop;
         }
@@ -106,12 +112,11 @@ class Player : Entity
     /// <summary>
     /// Add the number to _numbers, trigger event & set next number.
     /// </summary>
-    /// <param name="n">Number to deposit.</param>
-    void DepositNumber(Number n)
+    /// <param name="deposit">Number to deposit.</param>
+    void DepositNumber(Number deposit)
     {
-        _numbers.Add(n);
-        _dungeon.Rule.SetNextNumber();
-        OnDepositMade();
+        _numbers.Add(deposit);
+        OnDepositMade(deposit);
     }
 
     void ResetPositionData()
@@ -124,10 +129,10 @@ class Player : Entity
     void FastMove_OnStopped(object? o, EventArgs e) =>
         ResetPositionData();
 
-    void Dungeon_OnLevelChanged(ICollectionRule rule, int level, string[] s)
+    void Dungeon_OnLevelChanged(object? o, EventArgs e)
     {
         _numbers = new();
-        _inventory = Number.Empty;
+        Inventory = Number.Empty;
         ResetPositionData();
         FastMove.Reset();
     }
@@ -141,19 +146,19 @@ class Player : Entity
     /// <summary>
     /// Raises the InventoryChanged event.
     /// </summary>
-    void OnInventoryChanged()
+    void OnInventoryChanged(Number number)
     {
-        InventoryChanged?.Invoke(_inventory);
+        var args = new NumberEventArgs(number);
+        InventoryChanged?.Invoke(this, args);
     }
 
     /// <summary>
     /// Raises the NumbersChanged event.
     /// </summary>
-    void OnDepositMade()
+    void OnDepositMade(Number number)
     {
-        var lastNumber = _numbers.Last();
-        var totalNumbersCollected = _numbers.Count;
-        DepositMade?.Invoke(lastNumber, totalNumbersCollected);
+        var args = new NumberEventArgs(number);
+        DepositMade?.Invoke(this, args);
     }
     #endregion Methods
 
@@ -161,11 +166,11 @@ class Player : Entity
     /// <summary>
     /// Raised when the player has collected a valid number and placed it in their numbers list;
     /// </summary>
-    public event Action<Number, int>? DepositMade;
+    public event EventHandler<NumberEventArgs>? DepositMade;
 
     /// <summary>
     /// Raised when the player has placed a new number in their inventory.
     /// </summary>
-    public event Action<Number>? InventoryChanged;
+    public event EventHandler<NumberEventArgs>? InventoryChanged;
     #endregion Events
 }

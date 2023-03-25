@@ -1,16 +1,6 @@
-﻿using NumeralDash.Entities;
-using SadConsole;
-using SadRogue.Primitives;
+﻿namespace NumeralDash.Rules;
 
-namespace NumeralDash.Rules
+class EmptyOrder : CollectionRuleBase, ICollectionRule
 {
-    /// <summary>
-    /// Empty order in case of a map generation failure.
-    /// </summary>
-    class EmptyOrder : CollectionRuleBase, ICollectionRule
-    {
-        public string Description => "Empty Order.";
-
-        public EmptyOrder() : base(10) { }
-    }
+    public EmptyOrder() : base(1, "Empty Order", Color.White) { }
 }
