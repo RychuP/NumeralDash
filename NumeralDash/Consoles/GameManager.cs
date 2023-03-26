@@ -114,6 +114,12 @@ class GameManager : Console
                         ShowDungeon(_pauseScreen, _dungeon.Resume);
                 }
 
+                else if (keyboard.IsKeyPressed(Keys.Space))
+                {
+                    if (_startScreen.IsVisible)
+                        _startScreen.ToggleText();
+                }
+
                 else if (keyboard.IsKeyPressed(Keys.Escape))
                 {
                     if (_startScreen.IsVisible)
@@ -166,6 +172,7 @@ class GameManager : Console
     {
         _dungeon.PrepareStartup();
         _transition.Finished += Transition_GameStart_OnFinished;
+        _startScreen.Stars.IsVisible = false;
         _transition.Play(_startScreen, _dungeon, Color.LightBlue, () => _dungeon.ChangeMap());
     }
 
@@ -174,6 +181,7 @@ class GameManager : Console
     {
         _dungeon.PrepareStartup();
         _transition.Finished += Transition_GameStart_OnFinished;
+        _gameOverScreen.Stars.IsVisible = false;
         _transition.Play(_gameOverScreen, _dungeon, Color.LightBlue, () => _dungeon.ChangeMap());
     }
 

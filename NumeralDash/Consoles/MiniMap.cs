@@ -80,7 +80,6 @@ class MiniMap : Console
         ChangeMiniViewSize(e.View.Size.ToSize(), e.MapSize);
         ChangeMiniViewPosition(e.View.Position, MapSize);
         DisplayMiniView();
-        //Surface.Print(0, 0, e.View.Position.ToString());
     }
 
     void Dungeon_OnViewPositionChanged(object? o, PositionEventArgs e)
@@ -88,7 +87,6 @@ class MiniMap : Console
         if (MapSize == Size.Empty) return;
         ChangeMiniViewPosition(e.Position, MapSize);
         DisplayMiniView();
-        //Surface.Print(0, 1, e.Position.ToString());
     }
 
     void Dungeon_OnGameOver(object? o, EventArgs e)
