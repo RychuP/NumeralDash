@@ -32,11 +32,8 @@ class Number : Entity, ICollidable
 
         // random color for regular numbers
         if (!IsSpecial())
-        {
-            // find a color that meets the Minimum Brightness criteria
-            do Appearance.Foreground = Program.GetRandomColor();
-            while (Appearance.Foreground.GetBrightness() < Program.MinimumColorBrightness);
-        }
+            Appearance.Foreground = Program.GetRandBrightColor();
+
         // set color for special numbers
         else
             Appearance.Foreground = (_value == 0) ? Color.DarkSeaGreen : Color.Red;

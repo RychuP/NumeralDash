@@ -17,6 +17,13 @@ public static class Extensions
         _ => Keys.Down
     };
 
+    public static Point RandomPosition(this Rectangle area)
+    {
+        int x = Game.Instance.Random.Next(area.X, area.MaxExtentX);
+        int y = Game.Instance.Random.Next(area.Y, area.MaxExtentY);
+        return new Point(x, y);
+    }
+
     internal static Size ToSize(this Point p) =>
         new(p.X, p.Y);
 }
@@ -33,6 +40,18 @@ public static class SurfaceExtensions
     {
         c.Clear(0, y, c.Width);
         int x = (c.Width - text.Length) / 2;
+        c.Print(x, y, text);
+    }
+
+    public static void Print(this ICellSurface c, Point position, string text)
+    {
+        var (x, y) = position;
+        c.Print(x, y, text);
+    }
+
+    public static void Print(this ICellSurface c, Point position, ColoredString text)
+    {
+        var (x, y) = position;
         c.Print(x, y, text);
     }
 

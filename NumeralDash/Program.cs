@@ -16,7 +16,7 @@ class Program
     /// </summary>
     public const float MinimumColorBrightness = 0.5f;
 
-    public const string Version = "0.7.4";
+    public const string Version = "0.7.6";
 
     static void Main(string[] args)
     {
@@ -59,6 +59,18 @@ class Program
     /// <returns></returns>
     public static Color GetRandomColor() => 
         Color.White.GetRandomColor(Game.Instance.Random);
+
+    public static Color GetRandBrightColor(double brightness = MinimumColorBrightness)
+    {
+        if (brightness < 0.1d || brightness > 0.9d)
+            throw new ArgumentException("Brightness argument out of range.");
+
+        Color color;
+        do color = GetRandomColor();
+        while (color.GetBrightness() < brightness);
+
+        return color;
+    }
 
     /// <summary>
     /// Returns a random index (between 0 and count - 1).
