@@ -11,7 +11,7 @@ class GameManager : Console
     #region Fields
     const int SideWindowWidth = 27;        // keep this number odd to allow dungeon view fit snugly in the dungeon window
     const int SideWindowHeight = 20;
-    const bool IsDebugging = false;
+    const bool IsDebugging = true;
 
     // border style around windows
     readonly ColoredGlyph _borderGlyph = new(Color.Green, Color.Black, 177);
@@ -146,12 +146,6 @@ class GameManager : Console
 
         // no meaningful keyboard presses
         return base.ProcessKeyboard(keyboard);
-    }
-
-    public override void Update(TimeSpan delta)
-    {
-        Surface.Print(0, 0, _dungeon.View.Position.ToString());
-        base.Update(delta);
     }
 
     void ShowStartScreen(SpecialScreen prevScreen)

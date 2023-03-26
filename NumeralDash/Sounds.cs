@@ -6,29 +6,32 @@ namespace NumeralDash;
 static class Sounds
 {
     // https://pixabay.com/sound-effects/pickup-item-64282/
-    static readonly SoundEffectInstance[] s_pickUpSounds = new SoundEffectInstance[5];
+    static readonly SoundEffectInstance[] s_pickupSounds = new SoundEffectInstance[5];
 
     // https://pixabay.com/sound-effects/concrete-footsteps-6752/
     static readonly SoundEffectInstance[] s_stepSounds = new SoundEffectInstance[5];
 
     static readonly SoundEffectInstance[] s_levelSounds = new SoundEffectInstance[5];
+    static int s_prevLevelSoundIndex;
 
     static Sounds()
     {
         for (int i = 0; i < 5; i++)
         {
-            s_pickUpSounds[i] = FromFile("pickups", "pickup" + (i + 1));
+            s_pickupSounds[i] = FromFile("pickups", "pickup" + (i + 1));
             s_stepSounds[i] = FromFile("steps", "step" + (i + 1));
             s_levelSounds[i] = FromFile("levels", "level" + (i + 1));
         }
+
+        s_prevLevelSoundIndex = Program.GetRandomIndex(s_stepSounds.Length);
     }
 
     static public SoundEffectInstance PickUp
     {
         get
         {
-            int i = Program.GetRandomIndex(s_pickUpSounds.Length);
-            return s_pickUpSounds[i];
+            int i = Program.GetRandomIndex(s_pickupSounds.Length);
+            return s_pickupSounds[i];
         }
     }
 
@@ -36,7 +39,10 @@ static class Sounds
     {
         get
         {
-            int i = Program.GetRandomIndex(s_levelSounds.Length);
+            int i;
+            do i = Program.GetRandomIndex(s_levelSounds.Length);
+            while (i == s_prevLevelSoundIndex);
+            s_prevLevelSoundIndex = i;
             return s_levelSounds[i];
         }
     }

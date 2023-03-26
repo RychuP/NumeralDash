@@ -267,20 +267,22 @@ class Dungeon : Console
                 if (!room.Visited) room.Visited = true;
 
                 // look for entities at the player's position
-                if (room.GetCollidableAt(newPosition) is Entity e)
+                if (room.GetCollidableAt(newPosition) is Entity entity)
                 {
-                    // check if the player is walking over a long, multicell number and prevent that type of collections
-                    if (e is Number n && !n.Coords.Contains(prevPosition))
+                    // check if player is ignoring numbers while auto moving
+                    if (!(Player.IsMovingFast && _ctrlIsDown) &&
+                        // check if the player is walking over a long, multicell number and prevent that type of collections
+                        entity is Number number && !number.Coords.Contains(prevPosition))
                     {
                         // player can collect the number
-                        room.RemoveNumber(n);
-                        Number drop = Player.PickUp(n);
-                        room.PlaceNumber(drop, n.Position);
+                        room.RemoveNumber(number);
+                        Number drop = Player.PickUp(number);
+                        room.PlaceNumber(drop, number.Position);
                         Sounds.PickUp.Play();
                     }
 
                     // check if the level is completed
-                    else if (e is Exit)
+                    else if (entity is Exit)
                     {
                         if (Rule.NextNumber == Number.Empty)
                             OnLevelCompleted();
@@ -308,10 +310,10 @@ class Dungeon : Console
         if (!_levelComplete && Player.IsMovingFast)
         {
             // stop player when encountered collectible or fast move stop modifier conditions are met
-            if (Player.EncounteredCollidable ||
-                (_ctrlIsDown && Player.IsAtIntersection) ||
+            if ((_ctrlIsDown && Player.IsAtIntersection) ||
+                (_shiftIsDown && Player.EncounteredCollidable) ||
                 (_shiftIsDown && Player.IsAbeamCollidable))
-                Player.FastMove.Stop();
+                    Player.FastMove.Stop();
 
             // try moving player in the fast move direction
             else if (!TryMovePlayer(Player.FastMove.Direction))
