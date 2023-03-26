@@ -11,7 +11,7 @@ class GameManager : Console
     #region Fields
     const int SideWindowWidth = 27;        // keep this number odd to allow dungeon view fit snugly in the dungeon window
     const int SideWindowHeight = 20;
-    const bool IsDebugging = true;
+    const bool IsDebugging = false;
 
     // border style around windows
     readonly ColoredGlyph _borderGlyph = new(Color.Green, Color.Black, 177);
@@ -66,14 +66,18 @@ class GameManager : Console
         _pauseScreen = new(sWidth, Height);
         Children.Add(_startScreen, _gameOverScreen, _pauseScreen);
 
-        // animation
+        // rectangle animation
         _transition = new(_dungeon);
         Children.Add(_transition);
-        
+
         // connect borders
         this.ConnectLines();
     }
     #endregion Constructors
+
+    #region Properties
+    public SideWindow SideWindow => _sideWindow;
+    #endregion Properties
 
     #region Methods
     void AddChild(Console c, Point consoleSize, Point borderPos)
@@ -189,7 +193,7 @@ class GameManager : Console
     {
         _dungeon.IsVisible = false;
         _gameOverScreen.DisplayStats(e.Level, e.Score, e.TimeTotal);
-        _miniMap.ShowProgramVersion();
+        _miniMap.ShowInfo();
     }
 
     // when player presses escape while the pause screen is being shown

@@ -6,13 +6,15 @@ class MiniMap : Console
     readonly ColoredGlyph Appearance = new(Color.YellowGreen, Color.Transparent, 219);
     Rectangle MiniView = Rectangle.Empty;
     Size MapSize = Size.Empty;
+    string _ansiDescription = string.Empty;
+    readonly ColoredString _line;
     #endregion Fields
 
     #region Constructors
     public MiniMap(int width, int height, Dungeon dungeon) : base(width, height)
     {
-        ShowProgramVersion();
-
+        _line = new ColoredString(new string((char)196, Surface.Width - 2), Color.Green, Color.Transparent);
+        
         //dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
         dungeon.LevelCompleted += Dungeon_OnLevelCompleted;
         dungeon.MapChanged += Dungeon_OnMapChanged;
@@ -21,6 +23,10 @@ class MiniMap : Console
     }
     #endregion Constructors
 
+    #region Properties
+
+    #endregion Properties
+
     #region Methods
     void DisplayMiniView()
     {
@@ -28,12 +34,22 @@ class MiniMap : Console
         Surface.Fill(MiniView, Appearance.Foreground, glyph: Appearance.Glyph);
     }
 
-    public void ShowProgramVersion()
+    public void ShowInfo()
     {
         Surface.Clear();
-        Print(2, $"Version {Program.Version}");
-        Print(6, "Made with");
-        Print(8, "SadConsole 9.2.2");
+        if (Parent is GameManager gm && gm.SideWindow.Mask.IsVisible)
+        {
+            Print(0, $"\"{gm.SideWindow.Mask.Description}\"");
+            Print(2, "by Whazzit / Blocktronics");
+        }
+        else
+            Print(1, "Game in progress...");
+        
+        Surface.Print(3, _line);
+        Print(5, $"Version {Program.Version}");
+        Surface.Print(7, _line);
+        Print(8, "Made with");
+        Print(10, "SadConsole 9.2.2");
     }
 
     void ChangeMiniViewSize(Size mapViewSize, Size mapAreaSize)
@@ -91,18 +107,21 @@ class MiniMap : Console
 
     void Dungeon_OnGameOver(object? o, EventArgs e)
     {
-        ShowProgramVersion();
+        ShowInfo();
     }
 
     void GameManager_OnGameAbandoned(object? o, EventArgs e)
     {
-        ShowProgramVersion();
+        ShowInfo();
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         if (newParent is GameManager gm)
+        {
             gm.GameAbandoned += GameManager_OnGameAbandoned;
+            ShowInfo();
+        }
         base.OnParentChanged(oldParent, newParent);
     }
     #endregion Methods

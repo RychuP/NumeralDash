@@ -16,7 +16,7 @@ class Program
     /// </summary>
     public const float MinimumColorBrightness = 0.5f;
 
-    public const string Version = "0.7.6";
+    public const string Version = "0.7.8";
 
     static void Main(string[] args)
     {

@@ -13,6 +13,7 @@ static class Fonts
 
     public static IFont Default => GameHost.Instance.DefaultFont;
     public static IFont C64 => GetFont("C64");
+    public static IFont Petscii => GetFont("c64_petscii");
     public static TheDrawFont Destruct => GetDrawFont("DestructMag", "DESTRUCX");
 
 

@@ -19,8 +19,6 @@ class SideWindow : Console
         new Row(Item.ShortNames.Next, Item.ShortNames.Inv),
         new Row(Item.ShortNames.Level, Item.ShortNames.Remain),
     };
-
-    readonly Mask _mask;
     #endregion Fields
 
     #region Constructors
@@ -30,8 +28,8 @@ class SideWindow : Console
         int y = VerticalBorder;
 
         // stats cover
-        _mask = new(width, height);
-        Children.Add(_mask);
+        Mask = new(width, height);
+        Children.Add(Mask);
         
         // display items
         foreach (var row in _rows)
@@ -54,7 +52,7 @@ class SideWindow : Console
     #endregion Constructors
 
     #region Properties
-
+    public Mask Mask { get; init; }
     #endregion Properties
 
     #region Methods
@@ -111,7 +109,7 @@ class SideWindow : Console
 
     void Dungeon_OnMapChanged(object? o, MapEventArgs e)
     {
-        _mask.IsVisible = false;
+        Mask.IsVisible = false;
     }
 
     void Dungeon_OnDepositMade(object? o, DepositEventArgs e)
@@ -132,18 +130,18 @@ class SideWindow : Console
     void Dungeon_OnGameOver(object? o, EventArgs e)
     {
         ClearItems();
-        _mask.IsVisible = true;
+        Mask.IsVisible = true;
     }
 
     void Dungeon_OnLevelCompleted(object? o, EventArgs e)
     {
-        _mask.IsVisible = true;
+        Mask.IsVisible = true;
     }
 
     void GameManager_OnGameAbandoned(object? o, EventArgs e)
     {
         ClearItems();
-        _mask.IsVisible = true;
+        Mask.IsVisible = true;
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)

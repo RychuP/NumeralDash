@@ -3,6 +3,13 @@ using NumeralDash.Rules;
 
 namespace NumeralDash;
 
+class AnsiEventArgs : EventArgs
+{
+    public string Description { get; init; }
+    public AnsiEventArgs(string description) =>
+        Description = description;
+}
+
 class ScoreEventArgs : EventArgs
 {
     public int Score { get; init; }
