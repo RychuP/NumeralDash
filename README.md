@@ -20,9 +20,9 @@ SadConsole v9.2.2
 ## Screenshots:
 
 <p align="center" style="margin-bottom: 0px !important;">
-  <img width="750" src="/ScreenShots/title_screen.png" alt="Title Screen" align="center">
+  <img width="800" src="/ScreenShots/title.png" alt="Title Screen" align="center">
   <br><br>
-  <img width="750" src="/ScreenShots/numeral_dash.gif" alt="Gameplay" align="center">
+  <img width="800" src="/ScreenShots/gameplay.png" alt="Gameplay" align="center">
   <br><br>
-  <img width="750" src="/ScreenShots/gameplay.png" alt="Gameplay" align="center">
+  <img width="800" src="/ScreenShots/gameplay.gif" alt="Gameplay" align="center">
 </p>
