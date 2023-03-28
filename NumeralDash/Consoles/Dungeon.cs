@@ -48,7 +48,6 @@ class Dungeon : Console
         Player = new Player(_map.PlayerStartPosition, this);
         Player.PositionChanged += Player_OnPositionChanged;
         Player.DepositMade += Player_OnDepositMade;
-        SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = Player });
 
         IsVisible = false;
     }
@@ -301,10 +300,10 @@ class Dungeon : Console
     public override void Update(TimeSpan delta)
     {
         // update view position
-        Point prevViewPosition = View.Position;
-        View = View.WithCenter(Player.AbsolutePosition);
-        if (prevViewPosition != View.Position)
-            OnViewPositionChanged(prevViewPosition, View.Position);
+        Point prevViewPosition = Surface.View.Position;
+        Surface.View = View.WithCenter(Player.Position);
+        if (prevViewPosition != Surface.View.Position)
+            OnViewPositionChanged(prevViewPosition, Surface.View.Position);
 
         // update player position
         if (!_levelComplete && Player.IsMovingFast)
