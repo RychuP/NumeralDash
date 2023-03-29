@@ -16,7 +16,7 @@ Gameplay mechanics:
 .NET 6, SadConsole v9.2.2
 
 ## Download
-Release version available at [Itch.io](https://rychup.itch.io/numeraldash).
+Release version available at [Itch.io](https://rychup.itch.io/numeraldash)
 
 ## Screenshots:
 
