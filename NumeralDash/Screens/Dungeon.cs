@@ -121,7 +121,7 @@ class Dungeon : Console
     // resets variables before the game starts
     void PrepareStartup()
     {
-        Level = 0;
+        Level = 8;
         Score = 0;
     }
 

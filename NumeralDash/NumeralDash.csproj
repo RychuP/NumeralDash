@@ -6,7 +6,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <StartupObject>NumeralDash.Program</StartupObject>
 	<Nullable>enable</Nullable>
-	<Version>0.7.8</Version>
+	<Version>0.7.9</Version>
 	<Authors>Ryszard Pyka</Authors>
 	<Description>A small game testing your spacial memory. Collect all numbers scattered in a dungeon and leave before the time runs out.</Description>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
