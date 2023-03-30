@@ -16,7 +16,6 @@ static class Fonts
     public static IFont Petscii => GetFont("c64_petscii");
     public static TheDrawFont Destruct => GetDrawFont("DestructMag", "DESTRUCX");
 
-
     static IFont GetFont(string fontName, string fontFileName = "")
     {
         if (GameHost.Instance.Fonts.ContainsKey(fontName))

@@ -1,10 +1,10 @@
-﻿namespace NumeralDash.Consoles.SpecialScreens;
+﻿namespace NumeralDash.Screens.StaticScreens;
 
-class StartScreen : SpecialScreen
+class StartScreen : StaticScreen
 {
     bool _showingDescription = true;
 
-    public StartScreen(int width, int height) : base(width, height, "numeral", "dash")
+    public StartScreen() : base("numeral", "dash")
     {
         IsVisible = true;
         Print(9, $"Press {Enter} to start.");
@@ -43,5 +43,18 @@ class StartScreen : SpecialScreen
             PrintDescription();
         }
         base.OnVisibleChanged();
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is GameManager gm)
+        {
+            gm.Transition.MidPointReached += (o, e) =>
+            {
+                if (e.Type == TransitionTypes.GameStart)
+                    IsVisible = false;
+            };
+        }
+        base.OnParentChanged(oldParent, newParent);
     }
 }

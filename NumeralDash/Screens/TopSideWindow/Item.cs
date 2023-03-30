@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NumeralDash.Consoles.SideWindowParts;
+namespace NumeralDash.Screens.TopSideWindow;
 
 class Item
 {
@@ -39,11 +39,11 @@ class Item
     /// Displays initial look for the item.
     /// </summary>
     /// <param name="c"></param>
-    public void Display(Console c)
+    public void Display(ScreenSurface c)
     {
         // print title
-        string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, (char)196);  // '-');
-        c.Print(Position.X, Position.Y, title);
+        string title = $" {Title}: ".Align(HorizontalAlignment.Center, Width, (char)196);
+        c.Surface.Print(Position.X, Position.Y, title);
     }
 
     /// <summary>
@@ -52,15 +52,15 @@ class Item
     /// <param name="c"></param>
     /// <param name="s"></param>
     /// <param name="k"></param>
-    public void Display(Console c, string s, Color k)
+    public void Display(ScreenSurface c, string s, Color k)
     {
         s = s.Align(HorizontalAlignment.Center, Width);
         ColoredString cs = s.CreateColored(k);
-        c.Print(Position.X, Position.Y + contentBorderTop + 1, cs);
+        c.Surface.Print(Position.X, Position.Y + contentBorderTop + 1, cs);
     }
 
-    public void Clear(Console c)
+    public void Clear(ScreenSurface c)
     {
-        Display(c, string.Empty, c.DefaultForeground);
+        Display(c, string.Empty, c.Surface.DefaultForeground);
     }
 }

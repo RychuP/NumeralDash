@@ -6,8 +6,9 @@ using NumeralDash.Rules;
 using SadConsole.Input;
 using System.Timers;
 using NumeralDash.Tiles;
+using NumeralDash.Screens.TopSideWindow;
 
-namespace NumeralDash.Consoles;
+namespace NumeralDash.Screens;
 
 class Dungeon : Console
 {
@@ -26,7 +27,7 @@ class Dungeon : Console
     Renderer _entityManager;
     int _level = 0;
     int _score = 0;
-    Map _map;
+    Map _map = new();
 
     // movement modifiers
     bool _shiftIsDown = false;
@@ -34,11 +35,18 @@ class Dungeon : Console
     #endregion Fields
 
     #region Constructors
-    public Dungeon(int viewSizeX, int viewSizeY) : base(viewSizeX, viewSizeY, Map.DefaultSize, Map.DefaultSize)
+    public Dungeon() : base(Map.DefaultSize, Map.DefaultSize)
     {
-        _map = new Map();
-        _timer.Elapsed += Timer_OnTimeElapsed;
+        Position = (1, 1);
         Font = Fonts.C64;
+
+        // create view
+        int width = Program.Width - StatsDisplay.Width - 1;
+        int height = Program.Height - 2;
+        View = View.WithSize(width / 2 - 2, height);
+
+        // timer handler
+        _timer.Elapsed += Timer_OnTimeElapsed;
 
         // entity manager (temporary -> will be removed in ChangeMap)
         _entityManager = new Renderer();
@@ -106,23 +114,19 @@ class Dungeon : Console
     #endregion Properties
 
     #region Methods
-    // soft reset after the level generation error
-    public void Retry() =>
-        ChangeMap();
-
     // triggers various methods for debugging
     public void Debug() =>
         OnGameOver();
 
     // resets variables before the game starts
-    public void PrepareStartup()
+    void PrepareStartup()
     {
         Level = 0;
         Score = 0;
     }
 
     // finishes the preperation to start after the level has been changed during rectangle animation
-    public void FinishStartup()
+    void FinishStartup()
     {
         _timer.Start();
     }
@@ -241,10 +245,8 @@ class Dungeon : Console
     /// <summary>
     /// Selects a new rule for number collections.
     /// </summary>
-    void ChangeRule()
-    {
+    void ChangeRule() =>
         Rule = CollectionRuleBase.GetNextRule(Level, _map.NumberCount);
-    }
 
     /// <summary>
     /// Tries to move the player by one tile in the given direction.
@@ -426,20 +428,6 @@ class Dungeon : Console
         }
     }
 
-    void OnLevelCompleted()
-    {
-        _timer.Stop();
-        _levelComplete = true;
-        LevelCompleted?.Invoke(this, EventArgs.Empty);
-        Level++;
-    }
-
-    void OnMapFailedToGenerate(int roomGenAttempts, int roadGenAttempts, int mapGenAttempts)
-    {
-        var args = new MapGenEventArgs(roomGenAttempts, roadGenAttempts, mapGenAttempts);
-        MapFailedToGenerate?.Invoke(this, args);
-    }
-
     void Timer_OnTimeElapsed(object? o, ElapsedEventArgs e)
     {
         Time -= OneSecond;
@@ -449,6 +437,65 @@ class Dungeon : Console
         {
             Pause();
             OnGameOver();
+        }
+    }
+
+    void Transition_OnStarted(object? o, TransitionEventArgs e)
+    {
+        switch (e.Type)
+        {
+            case TransitionTypes.GameStart:
+                IsVisible = false;
+                PrepareStartup();
+                break;
+
+            case TransitionTypes.LevelChange:
+                IsVisible = true;
+                break;
+
+            case TransitionTypes.GameOver:
+                IsVisible = true;
+                break;
+        }
+    }
+
+    void Transition_OnMidPointReached(object? o, TransitionEventArgs e)
+    {
+        switch (e.Type)
+        {
+            case TransitionTypes.GameStart:
+                IsVisible = true;
+                ChangeMap();
+                break;
+
+            case TransitionTypes.LevelChange:
+                IsVisible = true;
+                ChangeMap();
+                break;
+
+            case TransitionTypes.GameOver:
+                IsVisible = false;
+                break;
+        }
+    }
+
+    void Transition_OnFinished(object? o, TransitionEventArgs e)
+    {
+        switch (e.Type)
+        {
+            case TransitionTypes.GameStart:
+                IsVisible = true;
+                FinishStartup();
+                break;
+
+            case TransitionTypes.LevelChange:
+                IsVisible = true;
+                FinishStartup();
+                break;
+
+            case TransitionTypes.GameOver:
+
+                break;
         }
     }
 
@@ -471,6 +518,7 @@ class Dungeon : Console
 
     void OnGameOver()
     {
+        IsVisible = false;
         var args = new GameOverEventArgs(Level, Score, _gameTimeTotal);
         GameOver?.Invoke(this, args);
     }
@@ -511,6 +559,34 @@ class Dungeon : Console
     {
         var args = new PositionEventArgs(newPosition);
         ViewPositionChanged?.Invoke(this, args);
+    }
+
+    void OnLevelCompleted()
+    {
+        _timer.Stop();
+        _levelComplete = true;
+        LevelCompleted?.Invoke(this, EventArgs.Empty);
+        Level++;
+    }
+
+    void OnMapFailedToGenerate(int roomGenAttempts, int roadGenAttempts, int mapGenAttempts)
+    {
+        // retry
+        ChangeMap();
+
+        var args = new MapGenEventArgs(roomGenAttempts, roadGenAttempts, mapGenAttempts);
+        MapFailedToGenerate?.Invoke(this, args);
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is GameManager gm)
+        {
+            gm.Transition.Started += Transition_OnStarted;
+            gm.Transition.MidPointReached += Transition_OnMidPointReached;
+            gm.Transition.Finished += Transition_OnFinished;
+        }
+        base.OnParentChanged(oldParent, newParent);
     }
     #endregion Methods
 

@@ -49,6 +49,9 @@ public static class SurfaceExtensions
         c.Print(x, y, text);
     }
 
+    public static void Print(this ICellSurface c, Point position, char glyph) =>
+        c.Print(position, glyph.ToString());
+
     public static void Print(this ICellSurface c, Point position, ColoredString text)
     {
         var (x, y) = position;

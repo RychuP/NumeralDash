@@ -1,8 +1,8 @@
-﻿namespace NumeralDash.Consoles.SpecialScreens;
+﻿namespace NumeralDash.Screens.StaticScreens;
 
-class ErrorScreen : SpecialScreen
+class ErrorScreen : StaticScreen
 {
-    public ErrorScreen(int width, int height) : base(width, height, "internal", "error")
+    public ErrorScreen() : base("internal", "error")
     {
         Print(0, "Map failed to generate too many times. Algorithm is not perfect.");
         Print(2, "It doesn't happen very often, but sometimes it does.");

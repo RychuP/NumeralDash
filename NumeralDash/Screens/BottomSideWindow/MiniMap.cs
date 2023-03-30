@@ -1,25 +1,22 @@
-﻿namespace NumeralDash.Consoles;
+﻿using NumeralDash;
+using NumeralDash.Screens.TopSideWindow;
 
-class MiniMap : Console
+namespace NumeralDash.Screens.BottomSideWindow;
+
+class MiniMap : ScreenSurface
 {
     #region Fields
     readonly ColoredGlyph Appearance = new(Color.YellowGreen, Color.Transparent, 219);
     Rectangle MiniView = Rectangle.Empty;
     Size MapSize = Size.Empty;
-    string _ansiDescription = string.Empty;
     readonly ColoredString _line;
     #endregion Fields
 
     #region Constructors
-    public MiniMap(int width, int height, Dungeon dungeon) : base(width, height)
+    public MiniMap() : base(StatsDisplay.Width, Program.Height - StatsDisplay.Height - 3)
     {
+        Position = (Program.Width - Surface.Width - 1, Program.Height - Surface.Height - 1);
         _line = new ColoredString(new string((char)196, Surface.Width - 2), Color.Green, Color.Transparent);
-        
-        //dungeon.MapFailedToGenerate += Dungeon_OnMapFailedToGenerate;
-        dungeon.LevelCompleted += Dungeon_OnLevelCompleted;
-        dungeon.MapChanged += Dungeon_OnMapChanged;
-        dungeon.ViewPositionChanged += Dungeon_OnViewPositionChanged;
-        dungeon.GameOver += Dungeon_OnGameOver;
     }
     #endregion Constructors
 
@@ -34,17 +31,9 @@ class MiniMap : Console
         Surface.Fill(MiniView, Appearance.Foreground, glyph: Appearance.Glyph);
     }
 
-    public void ShowInfo()
+    void PrintVersion()
     {
         Surface.Clear();
-        if (Parent is GameManager gm && gm.SideWindow.Mask.IsVisible)
-        {
-            Print(0, $"\"{gm.SideWindow.Mask.Description}\"");
-            Print(2, "by Whazzit / Blocktronics");
-        }
-        else
-            Print(1, "Game in progress...");
-        
         Surface.Print(3, _line);
         Print(5, $"Version {Program.Version}");
         Surface.Print(7, _line);
@@ -57,8 +46,8 @@ class MiniMap : Console
         // calculate mini view size
         float widthRatio = (float)mapViewSize.Width / mapAreaSize.Width;
         float heightRatio = (float)mapViewSize.Height / mapAreaSize.Height;
-        int width = Convert.ToInt32(Width * widthRatio);
-        int height = Convert.ToInt32(Height * heightRatio);
+        int width = Convert.ToInt32(Surface.Width * widthRatio);
+        int height = Convert.ToInt32(Surface.Height * heightRatio);
         MiniView = MiniView.WithSize(width, height);
     }
 
@@ -66,18 +55,18 @@ class MiniMap : Console
     {
         float xRatio = (float)mapViewPosition.X / mapAreaSize.Width;
         float yRatio = (float)mapViewPosition.Y / mapAreaSize.Height;
-        int x = Convert.ToInt32(Width * xRatio);
-        int y = Convert.ToInt32(Height * yRatio);
+        int x = Convert.ToInt32(Surface.Width * xRatio);
+        int y = Convert.ToInt32(Surface.Height * yRatio);
         MiniView = MiniView.WithPosition(new Point(x, y));
     }
 
     void Print(int y, string text) =>
-        Surface.Print(0, y, text.Align(HorizontalAlignment.Center, Width));
+        Surface.Print(0, y, text.Align(HorizontalAlignment.Center, Surface.Width));
 
     void Dungeon_OnMapFailedToGenerate(MapGenEventArgs e)
     {
         Surface.Clear();
-        int start = (Height - 6) / 2;
+        int start = (Surface.Height - 6) / 2;
         Print(start, $"Room Gen Failures: {e.RoomGenAttempts}");
         Print(start + 2, $"Road Gen Attempts: {e.RoadGenAttempts}");
         Print(start + 4, $"Map Gen Attempts: {e.MapGenAttempts}");
@@ -85,7 +74,6 @@ class MiniMap : Console
 
     void Dungeon_OnLevelCompleted(object? o, EventArgs e)
     {
-        Surface.Clear();
         MiniView = Rectangle.Empty;
         MapSize = Size.Empty;
     }
@@ -105,22 +93,95 @@ class MiniMap : Console
         DisplayMiniView();
     }
 
-    void Dungeon_OnGameOver(object? o, EventArgs e)
+    void Transition_OnStarted(object? o, TransitionEventArgs e)
     {
-        ShowInfo();
+        switch (e.Type)
+        {
+            case TransitionTypes.GameStart:
+
+                break;
+
+            case TransitionTypes.LevelChange:
+
+                break;
+
+            case TransitionTypes.GameOver:
+
+                break;
+        }
     }
 
-    void GameManager_OnGameAbandoned(object? o, EventArgs e)
+    void Transition_OnReachedMidPoint(object? o, TransitionEventArgs e)
     {
-        ShowInfo();
+        switch (e.Type)
+        {
+            case TransitionTypes.GameStart:
+
+                break;
+
+            case TransitionTypes.LevelChange:
+
+                break;
+
+            case TransitionTypes.GameOver:
+
+                break;
+        }
+    }
+
+    void Transition_OnFinished(object? o, TransitionEventArgs e)
+    {
+        switch (e.Type)
+        {
+            case TransitionTypes.GameStart:
+
+                break;
+
+            case TransitionTypes.LevelChange:
+
+                break;
+
+            case TransitionTypes.GameOver:
+
+                break;
+        }
+    }
+
+    void AnsiMask_VisibleChanged(object? o, EventArgs e)
+    {
+        
+        if (o is AnsiMask mask)
+        {
+            if (mask.IsVisible)
+            {
+                PrintVersion();
+                Print(0, $"\"{mask.Description}\"");
+                Print(2, "by Whazzit / Blocktronics");
+            }
+        }
+    }
+
+    void LevelMask_VisibleChanged(object? o, EventArgs e)
+    {
+        if (o is LevelMask mask)
+        {
+            if (mask.IsVisible)
+            {
+                PrintVersion();
+                Print(1, "Level is loading...");
+            }
+        }
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         if (newParent is GameManager gm)
         {
-            gm.GameAbandoned += GameManager_OnGameAbandoned;
-            ShowInfo();
+            gm.Dungeon.LevelCompleted += Dungeon_OnLevelCompleted;
+            gm.Dungeon.MapChanged += Dungeon_OnMapChanged;
+            gm.Dungeon.ViewPositionChanged += Dungeon_OnViewPositionChanged;
+            gm.AnsiMask.VisibleChanged += AnsiMask_VisibleChanged;
+            gm.LevelMask.VisibleChanged += LevelMask_VisibleChanged;
         }
         base.OnParentChanged(oldParent, newParent);
     }

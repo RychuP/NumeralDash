@@ -1,26 +1,59 @@
+using NumeralDash.Screens.TopSideWindow;
 using SadConsole.Instructions;
+using System.Collections.Generic;
 
-namespace NumeralDash.Consoles;
+namespace NumeralDash.Screens;
 
 class Transition : ScreenSurface
 {
     readonly Color _backgroundColor = Color.Black;
+    bool _isPlaying = false;
 
-    public Transition(Dungeon dungeon) : base(dungeon.Surface.View.Width, dungeon.Surface.View.Height)
+    readonly Dictionary<TransitionTypes, Color> _colors = new()
     {
-        Position = dungeon.Position;
-        Font = Fonts.C64;
+        { TransitionTypes.GameStart, Color.LightBlue },
+        { TransitionTypes.LevelChange, Color.Pink },
+        { TransitionTypes.GameOver, Color.Crimson },
+    };
+
+    public Transition() : base(Program.Width - StatsDisplay.Width - 3, Program.Height - 2)
+    {
+        Position = (1, 1);
         IsVisible = false;
     }
 
-    public void Play(ScreenSurface firstScreen, ScreenSurface secondScreen, Color rectangleColor, Action? callback = null)
+    public TransitionTypes Type { get; private set; } = TransitionTypes.GameStart;
+
+    public void Play(TransitionTypes type)
+    {
+        if (_isPlaying) 
+            return;
+        else
+        {
+            _isPlaying = true;
+            Type = type;
+            OnStarted();
+        }
+    }
+
+    public void DrawRectangle(Rectangle rectangle, Color color)
+    {
+        // clear everything with black color
+        Surface.DefaultBackground = _backgroundColor;
+        Surface.Clear();
+
+        // erase the center rectangle with transparent color
+        Surface.DefaultBackground = Color.Transparent;
+        Surface.Clear(rectangle);
+
+        // draw rectangle
+        Surface.DrawRectangle(rectangle, color, _backgroundColor);
+    }
+
+    void OnStarted()
     {
         Surface.Clear();
         IsVisible = true;
-
-        // set visibility
-        secondScreen.IsVisible = false;
-        firstScreen.IsVisible = true;
 
         // create animation rectangle
         Rectangle rectangle = Surface.Area;
@@ -48,7 +81,7 @@ class Transition : ScreenSurface
                 delta = TimeSpan.Zero;
 
                 // draw rectangle
-                DrawRectangle(rectangle, rectangleColor);
+                DrawRectangle(rectangle, _colors[Type]);
 
                 // recalculate sizes
                 horizontalRadius -= horizontalStep;
@@ -66,11 +99,7 @@ class Transition : ScreenSurface
         .Code(() =>
         {
             delta = speed;
-            callback?.Invoke();
-
-            firstScreen.IsVisible = false;
-            secondScreen.IsVisible = true;
-
+            OnReachedMidPoint();
             Sounds.Level.Play();
         })
         .Code((o, t) =>
@@ -81,7 +110,7 @@ class Transition : ScreenSurface
                 delta = TimeSpan.Zero;
 
                 // draw rectangle
-                DrawRectangle(rectangle, rectangleColor);
+                DrawRectangle(rectangle, _colors[Type]);
 
                 // recalculate sizes
                 horizontalRadius += horizontalStep;
@@ -100,29 +129,28 @@ class Transition : ScreenSurface
         {
             IsVisible = false;
         });
-
-        instructions.Finished += InstructionSet_OnFinished;
+        
+        instructions.Finished += (o, e) => OnFinished();
         SadComponents.Add(instructions);
+
+        var args = new TransitionEventArgs(Type);
+        Started?.Invoke(this, args);
     }
 
-    public void DrawRectangle(Rectangle rectangle, Color color)
+    void OnReachedMidPoint()
     {
-        // clear everything with black color
-        Surface.DefaultBackground = _backgroundColor;
-        Surface.Clear();
-
-        // erase the center rectangle with transparent color
-        Surface.DefaultBackground = Color.Transparent;
-        Surface.Clear(rectangle);
-
-        // draw rectangle
-        Surface.DrawRectangle(rectangle, color, _backgroundColor);
+        var args = new TransitionEventArgs(Type);
+        MidPointReached?.Invoke(this, args);
     }
 
-    void InstructionSet_OnFinished(object? o, EventArgs e)
+    void OnFinished()
     {
-        Finished?.Invoke(this, EventArgs.Empty);
+        _isPlaying = false;
+        var args = new TransitionEventArgs(Type);
+        Finished?.Invoke(this, args);
     }
 
-    public event EventHandler? Finished;
+    public event EventHandler<TransitionEventArgs>? Started;
+    public event EventHandler<TransitionEventArgs>? MidPointReached;
+    public event EventHandler<TransitionEventArgs>? Finished;
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NumeralDash.Consoles.SideWindowParts;
+namespace NumeralDash.Screens.TopSideWindow;
 
 class Row
 {
@@ -10,17 +10,15 @@ class Row
     public Row(params Item.ShortNames[] itemNames)
     {
         foreach (var n in itemNames)
-        {
             _items.Add(new Item(n));
-        }
     }
 
     // initial display of the items
-    public void Display(Console c, int y, int border)
+    public void Display(ScreenSurface c, int y, int border)
     {
         int plusSignsCount = _items.Count - 1;
         int plusSignsDisplayed = 0;
-        int itemWidth = (c.Width - border * 2 - plusSignsCount) / _items.Count;
+        int itemWidth = (c.Surface.Width - border * 2 - plusSignsCount) / _items.Count;
         int x = border;
 
         foreach (var item in _items)
@@ -34,10 +32,10 @@ class Row
             if (plusSignsCount > 0 && plusSignsDisplayed < plusSignsCount)
             {
                 x += itemWidth;
-                c.Print(x, y, "+"); // (char)197);
-                c.Print(x, y + 1, (char)179); //  "|");
-                c.Print(x, y + 2, (char)179); //  "|");
-                c.Print(x, y + 3, (char)179);  // "|");
+                c.Surface.Print(x, y, "+"); // (char)197);
+                c.Surface.Print(x, y + 1, (char)179); //  "|");
+                c.Surface.Print(x, y + 2, (char)179); //  "|");
+                c.Surface.Print(x, y + 3, (char)179);  // "|");
                 plusSignsDisplayed++;
             }
 
@@ -46,15 +44,15 @@ class Row
         }
     }
 
-    public void Clear(Console c)
+    public void Clear(ScreenSurface c)
     {
         foreach (var item in _items)
-        {
             item.Clear(c);
-        }
     }
 
-    public bool Contains(Item.ShortNames n) => GetItem(n) is not null;
+    public bool Contains(Item.ShortNames n) => 
+        GetItem(n) is not null;
 
-    public Item? GetItem(Item.ShortNames n) => _items.Find(i => i.Name == n);
+    public Item? GetItem(Item.ShortNames n) => 
+        _items.Find(i => i.Name == n);
 }

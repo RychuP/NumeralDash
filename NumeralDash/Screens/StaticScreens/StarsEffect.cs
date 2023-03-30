@@ -1,35 +1,32 @@
-using NumeralDash.Consoles.SpecialScreens;
 using System.Linq;
 
-namespace NumeralDash.Consoles;
+namespace NumeralDash.Screens.StaticScreens;
 
 class StarsEffect : ScreenSurface
 {
     const int MaxStarPosSearchAttempts = 100;
     const byte AlphaChangeSpeed = 1;
-    readonly Star[] _stars = new Star[10];
-    readonly Rectangle _starsArea;
+    readonly NumberStar[] _stars = new NumberStar[10];
 
     public StarsEffect(int width, int height) : base(width, height)
     {
-        _starsArea = Surface.Area.Expand(-1, -1);
         for (int i = 0; i < _stars.Length; i++)
-            _stars[i] = Star.Empty;
+            _stars[i] = NumberStar.Empty;
     }
 
-    Star CreateStar(int alpha = 0)
+    NumberStar CreateStar(int alpha = 0)
     {
         string text = Game.Instance.Random.Next(10, 255).ToString();
         alpha = alpha == 0 ? Game.Instance.Random.Next(byte.MaxValue - 1) : alpha;
         Color color = Program.GetRandBrightColor().SetAlpha((byte)alpha);
 
-        Rectangle starArea = new(0, 0, text.Length + Star.HorizontalMargin * 2, Star.VerticalMargin * 2 + 1);
+        Rectangle starArea = new(0, 0, text.Length + NumberStar.HorizontalMargin * 2, NumberStar.VerticalMargin * 2 + 1);
 
         for (int i = 0; i <= MaxStarPosSearchAttempts; i++)
         {
             // find an area for the star that is not colliding with any other text already printed
-            starArea = starArea.WithPosition(_starsArea.RandomPosition());
-            if (_starsArea.Contains(starArea))
+            starArea = starArea.WithPosition(Surface.Area.RandomPosition());
+            if (Surface.Area.Contains(starArea))
             {
                 if (AreaIsEmpty(starArea))
                 {
@@ -39,13 +36,13 @@ class StarsEffect : ScreenSurface
             }
 
             if (i == MaxStarPosSearchAttempts)
-                return Star.Empty;
+                return NumberStar.Empty;
         }
 
-        return new Star(text, color, starArea);
+        return new NumberStar(text, color, starArea);
     }
 
-    void ReplaceStar(Star star)
+    void ReplaceStar(NumberStar star)
     {
         int i = Array.IndexOf(_stars, star);
         _stars[i] = CreateStar();
@@ -58,13 +55,13 @@ class StarsEffect : ScreenSurface
         return true;
     }
 
-    void PrintStar(Star star)
+    void PrintStar(NumberStar star)
     {
         ColoredString text = new(star.Text, star.Color, Color.Transparent);
         Surface.Print(star.Position, text);
     }
 
-    void EraseStar(Star star)
+    void EraseStar(NumberStar star)
     {
         string text = new((char)0, star.Text.Length);
         Surface.Print(star.Position, text);
@@ -74,11 +71,11 @@ class StarsEffect : ScreenSurface
     {
         base.Render(delta);
 
-        if (Parent is not SpecialScreen || !IsVisible) return;
+        if (Parent is not StaticScreen || !IsVisible) return;
 
         foreach (var star in _stars)
         {
-            if (star == Star.Empty)
+            if (star == NumberStar.Empty)
             {
                 ReplaceStar(star);
                 continue;
@@ -114,11 +111,16 @@ class StarsEffect : ScreenSurface
         }
     }
 
+    void StaticScreen_OnIsVisibleChanged(object? o, EventArgs e)
+    {
+        if (o is StaticScreen screen)
+            IsVisible = screen.IsVisible;
+    }
+
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        if (Parent is SpecialScreen screen)
-            screen.VisibleChanged += SpecialScreen_OnIsVisibleChanged;
-
+        if (newParent is StaticScreen screen)
+            screen.VisibleChanged += StaticScreen_OnIsVisibleChanged;
         base.OnParentChanged(oldParent, newParent);
     }
 
@@ -129,46 +131,13 @@ class StarsEffect : ScreenSurface
             for (int i = 0; i < _stars.Length; i++)
             {
                 var star = _stars[i];
-                if (star != Star.Empty)
+                if (star != NumberStar.Empty)
                 {
                     EraseStar(star);
-                    _stars[i] = Star.Empty;
+                    _stars[i] = NumberStar.Empty;
                 }
             }
         }
         base.OnVisibleChanged();
-    }
-
-    void SpecialScreen_OnIsVisibleChanged(object? o, EventArgs e)
-    {
-        if (o is SpecialScreen screen)
-            IsVisible = screen.IsVisible;
-    }
-}
-
-class Star
-{
-    public static readonly Star Empty = new Star(string.Empty, Color.Transparent, Rectangle.Empty);
-
-    public const int HorizontalMargin = 2;
-    public const int VerticalMargin = 1;
-
-    public string Text { get; init; }
-    public Color Color { get; set; }
-    public Point Position { get; init; }
-    public Rectangle Area { get; init; }
-    public bool AlphaIsGoingDown { get; set; } = false;
-
-    public Star(string text, Color color, Rectangle area)
-    {
-        (Text, Color, Area) = (text, color, area);
-        Position = area.Position + (HorizontalMargin, VerticalMargin);
-    }
-
-    public bool Overlaps(Rectangle area)
-    {
-        var expandedArea = Area.Expand(3, 1);
-        bool result = expandedArea.Intersects(area);
-        return result;
     }
 }

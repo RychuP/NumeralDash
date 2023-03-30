@@ -17,6 +17,13 @@ class ScoreEventArgs : EventArgs
         Score = score;
 }
 
+class TransitionEventArgs : EventArgs
+{
+    public TransitionTypes Type { get; init; }
+    public TransitionEventArgs(TransitionTypes type) =>
+        Type = type;
+}
+
 class PositionEventArgs : EventArgs
 {
     public Point Position { get; init; }

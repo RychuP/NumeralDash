@@ -2,13 +2,13 @@
 global using SadConsole;
 global using SadRogue.Primitives;
 global using Console = SadConsole.Console;
-using NumeralDash.Consoles;
+using NumeralDash.Screens;
 
 namespace NumeralDash;
 
 class Program
 {
-    const int Width = 120, Height = 34;
+    public const int Width = 120, Height = 34;
     static readonly bool s_startFullScreen = false;
 
     /// <summary>
@@ -23,6 +23,7 @@ class Program
         // set title and resize mode
         Settings.WindowTitle = "Numeral Dash";
         Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
+        //Settings.WindowMinimumSize = (1280, 720);
 
         // setup the engine and create the main window.
         Game.Create(Width, Height);
@@ -40,10 +41,12 @@ class Program
 
     static void Init()
     {
-        if (s_startFullScreen) Game.Instance.ToggleFullScreen();
+        if (s_startFullScreen) 
+            Game.Instance.ToggleFullScreen();
+
         try
         {
-            Game.Instance.Screen = new GameManager(Width, Height);
+            Game.Instance.Screen = new GameManager();
             Game.Instance.DestroyDefaultStartingConsole();
         }
         catch
