@@ -5,15 +5,7 @@ namespace NumeralDash.Screens.TopSideWindow;
 // animated level number mask covering stats display during rectangle transitions
 class LevelMask : ScreenSurface
 {
-    readonly string[] _numberFileNames =
-    {
-        "one",
-        "two",
-        "three",
-        "four",
-    };
-
-    readonly LevelNumber[] _numbers;
+    readonly LevelNumber[] _numbers = new LevelNumber[10];
     readonly RaysAnim _rayAnim = new (27, 20);
     int _level;
 
@@ -23,9 +15,8 @@ class LevelMask : ScreenSurface
         Position = (Program.Width - Surface.Width - 1, 1);
 
         // create level numbers
-        _numbers = new LevelNumber[_numberFileNames.Length];
-        for (int i = 0; i < _numberFileNames.Length; i++)
-            _numbers[i] = new LevelNumber(_numberFileNames[i], 14, 12);
+        for (int i = 0; i < 10; i++)
+            _numbers[i] = new LevelNumber(i);
 
         // add ray anim to children
         Children.Add(_rayAnim);
@@ -33,26 +24,36 @@ class LevelMask : ScreenSurface
 
     void Animate(int level)
     {
-        var levelNumber = level >= 0 && level < _numberFileNames.Length ? _numbers[level] : _numbers[0];
-        Children.Add(levelNumber);
-        levelNumber.Reset();
-        _rayAnim.Reset();
+        string text = level.ToString();
+        var instructions = new InstructionSet() { RemoveOnFinished = true };
+        if (text.Length == 1)
+        {
+            var levelNumber = _numbers[level];
+            Children.Add(levelNumber);
+            levelNumber.Reset();
 
-        var instructions = new InstructionSet() { RemoveOnFinished = true }
-            .Code((o, t) => levelNumber.Animate())
-            .Code((o, t) => _rayAnim.Animate(t));
-
-        SadComponents.Add(instructions);
-    }
-
-    void AnimateRays()
-    {
-        SadComponents.Clear();
-        _rayAnim.Reset();
-
-        var instructions = new InstructionSet() { RemoveOnFinished = true }
+            instructions = instructions.Code((o, t) => levelNumber.Animate())
+            .Code((o, t) => _rayAnim.Animate(t))
             .Wait(TimeSpan.FromMilliseconds(300))
             .Code((o, t) => _rayAnim.Animate(t));
+        }
+        else if (text.Length == 2)
+        {
+            var firstNumber = _numbers[text[0] - 48];
+            var secondNumber = _numbers[text[1] - 48];
+            Children.Add(firstNumber);
+            firstNumber.Reset();
+
+            instructions = instructions.Code((o, t) => firstNumber.Animate())
+            .Code((o, t) => _rayAnim.Animate(t))
+            .Code(() => { 
+                Children.Remove(firstNumber); 
+                Children.Add(secondNumber); 
+                secondNumber.Reset(); 
+            })
+            .Code((o, t) => secondNumber.Animate())
+            .Code((o, t) => _rayAnim.Animate(t));
+        }
 
         SadComponents.Add(instructions);
     }
@@ -69,20 +70,6 @@ class LevelMask : ScreenSurface
             case TransitionTypes.LevelChange:
                 IsVisible = true;
                 Animate(_level + 1);
-                break;
-        }
-    }
-
-    void Transition_OnMidPointReached(object? o, TransitionEventArgs e)
-    {
-        switch (e.Type)
-        {
-            case TransitionTypes.GameStart:
-                AnimateRays();
-                break;
-
-            case TransitionTypes.LevelChange:
-                AnimateRays();
                 break;
         }
     }
@@ -115,11 +102,10 @@ class LevelMask : ScreenSurface
         if (newParent is GameManager gm)
         {
             gm.Transition.Started += Transition_OnStarted;
-            gm.Transition.MidPointReached += Transition_OnMidPointReached;
             gm.Transition.Finished += Transition_OnFinished;
             gm.Dungeon.LevelChanged += (o, e) =>
             {
-                _level = e.Level;
+                _level = e.Level + 1;
             };
         }
         base.OnParentChanged(oldParent, newParent);

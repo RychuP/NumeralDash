@@ -80,7 +80,10 @@ class RaysAnim : ScreenSurface
         if (++_currentPoint == RayLength)
         {
             if (++_stage == 2)
+            {
+                Reset();
                 return true;
+            }
             else
                 _currentPoint = 0;
         }

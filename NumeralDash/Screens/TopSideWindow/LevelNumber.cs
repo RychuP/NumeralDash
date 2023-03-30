@@ -12,24 +12,24 @@ class LevelNumber : ScreenSurface
     readonly LinkedList<Point> _points = new();
     LinkedListNode<Point>? _currentNode = null;
 
-    public LevelNumber(string fileName, int width, int height) : base(width, height)
+    public LevelNumber(int number) : base(14, 12)
     {
         Position = (7, 4);
 
         // read the blueprint file
-        var path = Path.Combine("Resources", "Text", $"{fileName}.txt");
+        var path = Path.Combine("Resources", "Text", $"{number}.txt");
         var text = File.ReadAllText(path);
         var eol = text.Contains("\r\n") ? "\r\n" : "\n";
         var lines = text.Split(eol);
 
         // check the lines
-        if (lines.Length != height || lines.Any(l => l.Length != width))
+        if (lines.Length != Surface.Height || lines.Any(l => l.Length != Surface.Width))
             throw new ArgumentException("Text file width or height invalid.");
 
         // transfer all letters to an array for easy editing
-        bool[,] markers = new bool[height, width];
-        for (int y = 0; y < height; y++)
-            for (int x = 0; x < width; x++)
+        bool[,] markers = new bool[Surface.Height, Surface.Width];
+        for (int y = 0; y < Surface.Height; y++)
+            for (int x = 0; x < Surface.Width; x++)
                 markers[y, x] = lines[y][x] == Dot;
 
         // find the first dot and create a point

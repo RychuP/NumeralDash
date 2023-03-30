@@ -11,7 +11,7 @@ namespace NumeralDash.Screens;
 class GameManager : Console
 {
     #region Fields
-    const bool IsDebugging = true;
+    const bool IsDebugging = false;
 
     // border style around windows
     readonly ColoredGlyph _borderGlyph = new(Color.Green, Color.Black, 177);
